@@ -1,7 +1,6 @@
-#include "raylib.h"
-#include <cmath> // for sin and cos
-#include <cstdlib>
-#include "game_loop.h"
+#include "Game.h"
+#include <iostream>
+#include <vector>
 
 #if defined(PLATFORM_WEB)
 #include <emscripten/emscripten.h>
@@ -14,12 +13,9 @@ EM_JS(int, getBrowserWidth, (), { return window.innerWidth; });
 EM_JS(int, getBrowserHeight, (), { return window.innerHeight; });
 #endif
 
-// class used to set up game loop
-
-
 int main() {
-    GameLoop gameLoop; // create game loop object
-    
-    gameLoop.Run();
+    Game game; // create game loop object
+
+    game.Run();
     return 0;
 }

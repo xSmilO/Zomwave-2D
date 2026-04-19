@@ -1,4 +1,6 @@
 #pragma once
+#include "Animator.h"
+#include "Map.h"
 #include "raylib.h"
 
 class Player {
@@ -7,11 +9,15 @@ class Player {
     float speed;
     float radius;
     float rotationAngle;
-
+    float playerWidth;
+    float playerHeight;
+    Animator animator;
+    bool facingLeft;
 
   public:
     Player();
-    void Update(Vector2 mouseWorldPos);
+    void Update(Map* map);
     void Draw();
+    void SetPosition(Vector2 newPosition);
     Vector2 GetPosition();
 };

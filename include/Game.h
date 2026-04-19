@@ -1,22 +1,21 @@
 #pragma once
-#include "player.h"
-#include "map.h"
+#include "Map.h"
+#include "Player.h"
 
-class GameLoop {
+class Game {
   private:
-    Vector2 mouseWorldPos;
-    Camera2D camera = {0};
+    Camera2D camera;
     Player *player;
     int screenWidth{};
     int screenHeight{};
-    GameMap levelMap;
-
+    Map *levelMap;
 
     void Draw();
+    void SpawnPlayer();
     static void MainLoopHelper(void *userData);
 
   public:
-    GameLoop();
-    ~GameLoop();
+    Game();
+    ~Game();
     void Run();
 };
