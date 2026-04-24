@@ -26,7 +26,7 @@ class Animator {
     ~Animator();
 
     void Update();
-    void Draw(Rectangle position, bool flipX = false);
+    void Draw(Rectangle position, bool flipX = false, float rotation = 0.0f);
     void SetState(std::string state);
     void AddAnimation(std::string state, std::string texPath, Vector2 frameSize,
                       float fps, std::vector<Vector2> framesPos, bool loop);

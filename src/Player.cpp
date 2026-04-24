@@ -80,14 +80,14 @@ void Player::Update(Vector2 mousePosition, Map *map) {
 }
 
 void Player::Draw() {
-    DrawRectangle(position.x - (playerWidth / 2.0f),
-                  position.y - (playerHeight / 2.0f), 40, 40, RED);
+    // DrawRectangle(position.x - (playerWidth / 2.0f),
+    //               position.y - (playerHeight / 2.0f), 40, 40, RED);
 
     animator.Draw({position.x, position.y, playerWidth, playerHeight},
                   facingLeft);
 
-    // if (weapon != nullptr)
-    //     weapon->Draw(weaponPosition, 0.0f);
+    if (weapon != nullptr)
+        weapon->Draw(weaponPosition, weaponRotation);
 
     // DrawCircleV({position.x, position.y}, 10.0f, RED);
 }

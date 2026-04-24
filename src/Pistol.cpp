@@ -15,6 +15,5 @@ void Pistol::Update() { animator.Update(); }
 
 void Pistol::Draw(Vector2 position, float rotation) {
     Rectangle newPos = {position.x, position.y, 60, 30};
-    DrawCircleV(position, 10, BLUE);
-    animator.Draw(newPos);
+    animator.Draw(newPos, false, rotation);
 }

@@ -1,5 +1,7 @@
 #include "Game.h"
 #include "raylib.h"
+#include "raymath.h"
+#include <cmath>
 #include <string>
 
 Game::Game() {
@@ -20,6 +22,9 @@ Game::Game() {
 
     InitWindow(screenWidth, screenHeight, "Zomwave 2D");
 
+    target = LoadRenderTexture(virtualWidth, virtualHeight);
+    SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
+
     levelMap = new Map();
     player = new Player();
     pistol = new Pistol();
@@ -32,6 +37,7 @@ Game::~Game() {
     delete player;
     delete levelMap;
     delete pistol;
+    UnloadRenderTexture(target);
     CloseWindow();
 }
 
@@ -41,36 +47,64 @@ void Game::Draw() {
     int padding = 30; // set padding to avoid scrollbar and browser edge overlap
     SetWindowSize(getBrowserWidth() - padding, getBrowserHeight() - padding);
 #endif
-    BeginDrawing();
+    BeginTextureMode(target);
     ClearBackground(RAYWHITE);
-
-    mousePosition = GetScreenToWorld2D(GetMousePosition(), camera);
-
-    player->Update(mousePosition, levelMap);
-    // Vector2 plPos = player->GetPosition();
-    camera.zoom = 1.0f;
-    camera.target = player->GetPosition();
-
     BeginMode2D(camera);
 
     levelMap->Draw();
     player->Draw();
-    // DrawCircleV(mouseWorldPos, 5.0f, RED);
 
     EndMode2D();
+    EndTextureMode();
 
     std::string playerPos = "(" + std::to_string(player->GetPosition().x) +
                             "," + std::to_string(player->GetPosition().y) + ")";
+
+    BeginDrawing();
+    ClearBackground(BLACK);
+
+    float scale = fminf((float)GetScreenWidth() / virtualWidth,
+                        (float)GetScreenHeight() / virtualHeight);
+
+    Rectangle source = {0.0f, 0.0f, (float)target.texture.width,
+                        (float)-target.texture.height};
+
+    Rectangle dest = {(GetScreenWidth() - (virtualWidth * scale)) * 0.5f,
+                      (GetScreenHeight() - (virtualHeight * scale)) * 0.5f,
+                      virtualWidth * scale, virtualHeight * scale};
+
+    DrawTexturePro(target.texture, source, dest, {0, 0}, 0.0f, WHITE);
+
     DrawText("Poruszaj sie WSAD", 10, 10, 20, DARKGRAY);
     DrawText(playerPos.c_str(), 10, 30, 20, DARKGRAY);
     EndDrawing();
 }
 
+void Game::Update() {
+    float scale = fminf((float)GetScreenWidth() / virtualWidth,
+                        (float)GetScreenHeight() / virtualHeight);
+    player->Update(mousePosition, levelMap);
+    camera.target = player->GetPosition();
+
+    Vector2 mouseRaw = GetMousePosition();
+    mousePosition.x =
+        (mouseRaw.x - (GetScreenWidth() - (virtualWidth * scale)) * 0.5f) /
+        scale;
+    mousePosition.y =
+        (mouseRaw.y - (GetScreenHeight() - (virtualHeight * scale)) * 0.5f) /
+        scale;
+
+    mousePosition.x = Clamp(mousePosition.x, 0, virtualWidth);
+    mousePosition.y = Clamp(mousePosition.y, 0, virtualHeight);
+
+    mousePosition = GetScreenToWorld2D(mousePosition, camera);
+}
+
 // method used to call all game logic
 void Game::MainLoopHelper(void *userData) {
     Game *game = static_cast<Game *>(userData);
-
-    game->Draw(); // add more game logic methods here eg: Update();
+    game->Update();
+    game->Draw();
 }
 
 // used to run game loop logic

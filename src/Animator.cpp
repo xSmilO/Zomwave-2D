@@ -31,7 +31,7 @@ void Animator::Update() {
     }
 }
 
-void Animator::Draw(Rectangle position, bool flipX) {
+void Animator::Draw(Rectangle position, bool flipX, float rotation) {
     if (currentState == "")
         return;
 
@@ -47,7 +47,7 @@ void Animator::Draw(Rectangle position, bool flipX) {
 
     Vector2 origin = {position.width / 2.0f, position.height / 2.0f};
 
-    DrawTexturePro(anim.texture, sourceRec, position, origin, 0, WHITE);
+    DrawTexturePro(anim.texture, sourceRec, position, origin, rotation, WHITE);
 }
 
 void Animator::SetState(std::string state) {
