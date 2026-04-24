@@ -17,6 +17,7 @@ void Map::LoadMap() {
         const ldtk::Tileset &tileset = world.getTileset("Demo");
 
         layerTex = LoadTexture(("../assets/" + tileset.path).c_str());
+        SetTextureFilter(layerTex, TEXTURE_FILTER_POINT);
 
         const ldtk::Level &level = world.getLevel("Level_0");
         const ldtk::Layer &layer = level.getLayer("Tiles");

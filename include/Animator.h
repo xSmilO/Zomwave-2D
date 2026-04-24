@@ -7,7 +7,7 @@
 
 struct Animation {
     Texture2D texture;
-    int tileSize;
+    Vector2 frameSize;
     std::vector<Vector2> frames;
     float fps;
     bool isLooping;
@@ -15,6 +15,7 @@ struct Animation {
 
 class Animator {
   private:
+    bool animationFinished;
     double frameTimer;
     unsigned int currentFrame;
     std::string currentState;
@@ -27,6 +28,8 @@ class Animator {
     void Update();
     void Draw(Rectangle position, bool flipX = false);
     void SetState(std::string state);
-    void AddAnimation(std::string state, std::string texPath, int tileSize,
+    void AddAnimation(std::string state, std::string texPath, Vector2 frameSize,
                       float fps, std::vector<Vector2> framesPos, bool loop);
+    void ResetAnimation();
+    bool IsAnimationFinished();
 };

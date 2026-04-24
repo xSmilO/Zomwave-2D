@@ -39,29 +39,34 @@ void Animator::Draw(Rectangle position, bool flipX) {
 
     Vector2 pos = anim.frames[currentFrame];
 
-    Rectangle sourceRec = {pos.x * anim.tileSize, pos.y * anim.tileSize,
-                           (float)anim.tileSize, (float)anim.tileSize};
+    Rectangle sourceRec = {pos.x * anim.frameSize.x, pos.y * anim.frameSize.y,
+                           (float)anim.frameSize.x, (float)anim.frameSize.y};
 
     if (flipX)
         sourceRec.width = -sourceRec.width;
 
-    DrawTexturePro(anim.texture, sourceRec, position, {0.0f, 0.0f}, 0, WHITE);
+    Vector2 origin = {position.width / 2.0f, position.height / 2.0f};
+
+    DrawTexturePro(anim.texture, sourceRec, position, origin, 0, WHITE);
 }
 
 void Animator::SetState(std::string state) {
-    if(state == currentState) return;
+    if (state == currentState)
+        return;
     currentState = state;
     currentFrame = 0;
 }
 
 void Animator::AddAnimation(std::string state, std::string texPath,
-                            int tileSize, float fps,
+                            Vector2 frameSize, float fps,
                             std::vector<Vector2> framesPos, bool loop) {
     Animation anim;
     anim.texture = LoadTexture(texPath.c_str());
-    anim.tileSize = tileSize;
+    anim.frameSize = frameSize;
     anim.fps = fps;
     anim.isLooping = loop;
     anim.frames = framesPos;
     frames[state] = anim;
 }
+
+void Animator::ResetAnimation() { currentFrame = 0; }

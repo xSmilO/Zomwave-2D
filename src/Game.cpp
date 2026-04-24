@@ -22,6 +22,8 @@ Game::Game() {
 
     levelMap = new Map();
     player = new Player();
+    pistol = new Pistol();
+    player->SetWeapon(pistol);
 
     SpawnPlayer();
 }
@@ -29,6 +31,7 @@ Game::Game() {
 Game::~Game() {
     delete player;
     delete levelMap;
+    delete pistol;
     CloseWindow();
 }
 
@@ -41,8 +44,11 @@ void Game::Draw() {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
+    mousePosition = GetScreenToWorld2D(GetMousePosition(), camera);
 
-    player->Update(levelMap);
+    player->Update(mousePosition, levelMap);
+    // Vector2 plPos = player->GetPosition();
+    camera.zoom = 1.0f;
     camera.target = player->GetPosition();
 
     BeginMode2D(camera);
@@ -78,6 +84,4 @@ void Game::Run() {
 #endif
 }
 
-void Game::SpawnPlayer() {
-    player->SetPosition(levelMap->GetSpawnPoint());
-}
+void Game::SpawnPlayer() { player->SetPosition(levelMap->GetSpawnPoint()); }

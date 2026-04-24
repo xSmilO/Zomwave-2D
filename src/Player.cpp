@@ -1,57 +1,67 @@
 #include "Player.h"
 #include "math.h"
 #include "raylib.h"
+#include "raymath.h"
 
 Player::Player() {
     position = {0.0f, 0.0f};
     speed = 256.0f;
     playerWidth = 40.0f;
     playerHeight = 40.0f;
+    weapon = nullptr;
 
     // load Player animation
     std::vector<Vector2> idleFramePos = {{2, 2},  {7, 2},  {12, 2},
                                          {17, 2}, {22, 2}, {27, 2}};
-    animator.AddAnimation("idle", "../assets/soldier-idle.png", 20, 2,
+    animator.AddAnimation("idle", "../assets/soldier-idle.png", {20, 20}, 2,
                           idleFramePos, true);
-    animator.AddAnimation("walk", "../assets/soldier-walk.png", 20, 8,
+    animator.AddAnimation("walk", "../assets/soldier-walk.png", {20, 20}, 8,
                           idleFramePos, true);
     animator.SetState("idle");
 }
 
-void Player::Update(Map *map) {
+void Player::Update(Vector2 mousePosition, Map *map) {
     float dt = GetFrameTime();
-    float moveX = 0.0f;
-    float moveY = 0.0f;
+
+    Vector2 inputDir = {0.0f, 0.0f};
 
     if (IsKeyDown(KEY_A)) {
-        moveX -= speed * dt;
+        inputDir.x -= 1.0f;
         facingLeft = true;
     }
+
     if (IsKeyDown(KEY_D)) {
-        moveX += speed * dt;
+        inputDir.x += 1.0f;
         facingLeft = false;
     }
+
     if (IsKeyDown(KEY_W)) {
-        moveY -= speed * dt;
-    }
-    if (IsKeyDown(KEY_S)) {
-        moveY += speed * dt;
+        inputDir.y -= 1.0f;
     }
 
-    moveX = std::floor(moveX);
-    moveY = std::floor(moveY);
+    if (IsKeyDown(KEY_S)) {
+        inputDir.y += 1.0f;
+    }
+
+    if (inputDir.x != 0.0f || inputDir.y != 0.0f) {
+        inputDir = Vector2Normalize(inputDir);
+    }
+
+    float moveX = inputDir.x * speed * dt;
+    float moveY = inputDir.y * speed * dt;
 
     if (moveX != 0.0f) {
-        Rectangle futureHitbox = {position.x + moveX, position.y, playerWidth,
-                                   playerHeight};
+        Rectangle futureHitbox = {position.x + moveX - (playerWidth / 2.0f),
+                                  position.y, playerWidth, playerHeight};
         if (map->CheckHitbox(futureHitbox) == false) {
             position.x += moveX;
         }
     }
 
     if (moveY != 0.0f) {
-        Rectangle futureHitbox = {position.x, position.y + moveY, playerWidth,
-                                   playerHeight};
+        Rectangle futureHitbox = {position.x,
+                                  position.y + moveY - (playerHeight / 2.0f),
+                                  playerWidth, playerHeight};
         if (map->CheckHitbox(futureHitbox) == false) {
             position.y += moveY;
         }
@@ -62,16 +72,42 @@ void Player::Update(Map *map) {
     else
         animator.SetState("idle");
 
+    CalculateWeaponPos(mousePosition);
+
     animator.Update();
+    if (weapon != nullptr)
+        weapon->Update();
 }
 
 void Player::Draw() {
-    DrawRectangle(position.x, position.y, 40, 40, RED);
+    DrawRectangle(position.x - (playerWidth / 2.0f),
+                  position.y - (playerHeight / 2.0f), 40, 40, RED);
 
     animator.Draw({position.x, position.y, playerWidth, playerHeight},
                   facingLeft);
+
+    // if (weapon != nullptr)
+    //     weapon->Draw(weaponPosition, 0.0f);
+
+    // DrawCircleV({position.x, position.y}, 10.0f, RED);
 }
 
 void Player::SetPosition(Vector2 newPosition) { position = newPosition; }
 
 Vector2 Player::GetPosition() { return position; }
+
+void Player::SetWeapon(Pistol *pistol) { weapon = pistol; }
+
+void Player::CalculateWeaponPos(Vector2 mousePosition) {
+    Vector2 center = {position.x, position.y};
+
+    float dx = mousePosition.x - center.x;
+    float dy = mousePosition.y - center.y;
+    float angleRad = atan2f(dy, dx);
+
+    float orbitRadius = 50.0f;
+
+    weaponPosition.x = center.x + cosf(angleRad) * orbitRadius;
+    weaponPosition.y = center.y + sinf(angleRad) * orbitRadius;
+    weaponRotation = angleRad * (180.0f / PI);
+}
