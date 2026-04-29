@@ -1,26 +1,25 @@
 #pragma once
 
-#include <LDtkLoader/Project.hpp>
 #include "raylib.h"
-#include <vector>
-
+#include <LDtkLoader/Project.hpp>
+#include <map>
 
 class Map {
   private:
-    ldtk::Project proj;
-    const ldtk::Layer* collisionLayer;
-    Vector2 spawnPoint;
-    Texture2D layerTex;
-    int mapWidth;
-    int mapHeight;
-    int tileSize;
-    std::vector<ldtk::Tile> tiles;
-    void LoadMap();
+    ldtk::Project project;
+    const ldtk::Level* currentLevel;
+    const ldtk::Layer *collisionLayer = nullptr;
+    float tileSize = 16.0f;
+    Vector2 mapSize;
 
+    std::map<std::string, Texture2D> tilesets;
+
+    void DrawLayer(const ldtk::Layer& layer);
   public:
     Map();
     ~Map();
-    void Draw();
     Vector2 GetSpawnPoint();
     bool CheckHitbox(Rectangle hitbox);
+    void DrawBackground();
+    void DrawForeground();
 };

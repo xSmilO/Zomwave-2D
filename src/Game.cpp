@@ -16,7 +16,7 @@ Game::Game() {
 
     screenWidth = 1920 / 2;
     screenHeight = 1080 / 2;
-    camera.offset = {screenWidth / 2.0f, screenHeight / 2.0f};
+    camera.offset = {virtualWidth / 2.0f, virtualHeight / 2.0f};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
@@ -51,8 +51,10 @@ void Game::Draw() {
     ClearBackground(RAYWHITE);
     BeginMode2D(camera);
 
-    levelMap->Draw();
+    levelMap->DrawBackground();
     player->Draw();
+    levelMap->DrawForeground();
+    bulletManager.Draw();
 
     EndMode2D();
     EndTextureMode();
@@ -83,7 +85,8 @@ void Game::Draw() {
 void Game::Update() {
     float scale = fminf((float)GetScreenWidth() / virtualWidth,
                         (float)GetScreenHeight() / virtualHeight);
-    player->Update(mousePosition, levelMap);
+    bulletManager.Update(levelMap);
+    player->Update(mousePosition, levelMap, &bulletManager);
     camera.target = player->GetPosition();
 
     Vector2 mouseRaw = GetMousePosition();

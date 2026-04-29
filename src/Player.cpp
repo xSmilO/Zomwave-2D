@@ -6,8 +6,8 @@
 Player::Player() {
     position = {0.0f, 0.0f};
     speed = 256.0f;
-    playerWidth = 40.0f;
-    playerHeight = 40.0f;
+    playerWidth = 50.0f;
+    playerHeight = 50.0f;
     weapon = nullptr;
 
     // load Player animation
@@ -20,7 +20,8 @@ Player::Player() {
     animator.SetState("idle");
 }
 
-void Player::Update(Vector2 mousePosition, Map *map) {
+void Player::Update(Vector2 mousePosition, Map *map,
+                    BulletManager *bulletManager) {
     float dt = GetFrameTime();
 
     Vector2 inputDir = {0.0f, 0.0f};
@@ -49,19 +50,18 @@ void Player::Update(Vector2 mousePosition, Map *map) {
 
     float moveX = inputDir.x * speed * dt;
     float moveY = inputDir.y * speed * dt;
+    float hitX = position.x - (playerWidth / 2.0f);
+    float hitY = position.y - (playerHeight / 2.0f);
 
     if (moveX != 0.0f) {
-        Rectangle futureHitbox = {position.x + moveX - (playerWidth / 2.0f),
-                                  position.y, playerWidth, playerHeight};
+        futureHitbox = {hitX + moveX, hitY, playerWidth, playerHeight};
         if (map->CheckHitbox(futureHitbox) == false) {
             position.x += moveX;
         }
     }
 
     if (moveY != 0.0f) {
-        Rectangle futureHitbox = {position.x,
-                                  position.y + moveY - (playerHeight / 2.0f),
-                                  playerWidth, playerHeight};
+        futureHitbox = {hitX, hitY + moveY, playerWidth, playerHeight};
         if (map->CheckHitbox(futureHitbox) == false) {
             position.y += moveY;
         }
@@ -72,11 +72,17 @@ void Player::Update(Vector2 mousePosition, Map *map) {
     else
         animator.SetState("idle");
 
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if (weapon != nullptr) {
+            weapon->Shoot(mousePosition, bulletManager);
+        }
+    }
+
     CalculateWeaponPos(mousePosition);
 
     animator.Update();
     if (weapon != nullptr)
-        weapon->Update();
+        weapon->Update(weaponPosition, weaponRotation, dt);
 }
 
 void Player::Draw() {
@@ -86,8 +92,10 @@ void Player::Draw() {
     animator.Draw({position.x, position.y, playerWidth, playerHeight},
                   facingLeft);
 
+    // DrawRectangleRec(futureHitbox, RED);
+
     if (weapon != nullptr)
-        weapon->Draw(weaponPosition, weaponRotation);
+        weapon->Draw();
 
     // DrawCircleV({position.x, position.y}, 10.0f, RED);
 }

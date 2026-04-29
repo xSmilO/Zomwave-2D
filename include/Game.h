@@ -13,10 +13,11 @@ class Game {
     int screenWidth{};
     int screenHeight{};
     Map *levelMap;
+    BulletManager bulletManager;
     
     RenderTexture2D target;
     const int virtualWidth = 800;
-    const int virtualHeight = 600;
+    const int virtualHeight = 450;
 
     void Draw();
     void Update();
