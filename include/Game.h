@@ -1,7 +1,9 @@
 #pragma once
+#include "Managers/EnemyManager.h"
+#include "Managers/ResourceManager.h"
 #include "Map.h"
-#include "Pistol.h"
-#include "Player.h"
+#include "Weapons/Pistol.h"
+#include "Entities/Player.h"
 #include "raylib.h"
 
 class Game {
@@ -13,7 +15,10 @@ class Game {
     int screenWidth{};
     int screenHeight{};
     Map *levelMap;
-    BulletManager bulletManager;
+    ResourceManager* resources;
+
+    BulletManager* bulletManager;
+    EnemyManager* enemyManager;
     
     RenderTexture2D target;
     const int virtualWidth = 800;

@@ -1,13 +1,14 @@
-#include "Pistol.h"
-#include "BulletManager.h"
+#include "Weapons/Pistol.h"
+#include "Managers/BulletManager.h"
 #include "raylib.h"
 #include "raymath.h"
 
-Pistol::Pistol() {
+Pistol::Pistol(Texture2D* pistolTex) {
+
     std::vector<Vector2> shootFramePos = {{0, 0}};
 
-    animator.AddAnimation("shoot", "../assets/pistol.png", {64, 32}, 1,
-                          shootFramePos, false);
+    animator.AddAnimation("shoot", pistolTex, {64, 32}, 1, shootFramePos,
+                          false);
 
     animator.SetState("shoot");
     fireRate = 0.1;

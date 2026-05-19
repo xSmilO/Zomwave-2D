@@ -3,11 +3,6 @@
 
 Animator::Animator() { frames = {}; }
 
-Animator::~Animator() {
-    for (const auto &[state, anim] : frames) {
-        UnloadTexture(anim.texture);
-    }
-}
 
 void Animator::Update() {
     if (currentState == "")
@@ -47,7 +42,7 @@ void Animator::Draw(Rectangle position, bool flipX, float rotation) {
 
     Vector2 origin = {position.width / 2.0f, position.height / 2.0f};
 
-    DrawTexturePro(anim.texture, sourceRec, position, origin, rotation, WHITE);
+    DrawTexturePro(*anim.texture, sourceRec, position, origin, rotation, WHITE);
 }
 
 void Animator::SetState(std::string state) {
@@ -57,11 +52,11 @@ void Animator::SetState(std::string state) {
     currentFrame = 0;
 }
 
-void Animator::AddAnimation(std::string state, std::string texPath,
+void Animator::AddAnimation(std::string state, Texture2D* texture,
                             Vector2 frameSize, float fps,
                             std::vector<Vector2> framesPos, bool loop) {
     Animation anim;
-    anim.texture = LoadTexture(texPath.c_str());
+    anim.texture = texture;
     anim.frameSize = frameSize;
     anim.fps = fps;
     anim.isLooping = loop;

@@ -1,0 +1,70 @@
+#include "Entities/Zombie.h"
+#include "Map.h"
+#include <raymath.h>
+#include <vector>
+
+Zombie::Zombie(Texture2D *zombieWalk, Vector2 startPos) {
+    position = startPos;
+    speed = 100.0f;
+    width = 32.0f;
+    height = 32.0f;
+    health = 3;
+    active = true;
+
+    std::vector<Vector2> walkFramePos = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+
+    animator.AddAnimation("walk", zombieWalk, {32, 32}, 15, walkFramePos, true);
+
+    animator.SetState("walk");
+}
+
+void Zombie::Update(Vector2 playerPos, Map *map) {
+    if (!active)
+        return;
+
+    float dt = GetFrameTime();
+
+    animator.Update();
+
+    Vector2 dir = Vector2Subtract(playerPos, position);
+    dir = Vector2Normalize(dir);
+
+    float moveX = dir.x * speed * dt;
+    float moveY = dir.y * speed * dt;
+
+    float hitX = position.x - (width / 2.0f);
+    float hitY = position.y - (height / 2.0f);
+
+    if (moveX != 0.0f) {
+        Rectangle futureHitboxX = {hitX + moveX, hitY, width, height};
+
+        if (map->CheckHitbox(futureHitboxX) == false) {
+            position.x += moveX;
+        }
+    }
+
+    if (moveY != 0.0f) {
+        Rectangle futureHitboxY = {hitX, hitY + moveY, width, height};
+
+        if (map->CheckHitbox(futureHitboxY) == false) {
+            position.y += moveY;
+        }
+    }
+
+    texFlip = moveX < 0;
+}
+
+void Zombie::Draw() {
+    if (!active)
+        return;
+
+    Rectangle destRec = GetHitbox();
+    DrawRectangleRec(destRec, RED);
+    animator.Draw(
+        {position.x, position.y - (height / 2), width * 2, height * 2}, texFlip);
+}
+
+Rectangle Zombie::GetHitbox() {
+    return {position.x - (width / 2.0f), position.y - (height / 2.0f), width,
+            height};
+}

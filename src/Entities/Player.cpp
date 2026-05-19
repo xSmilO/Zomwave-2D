@@ -1,9 +1,9 @@
-#include "Player.h"
+#include "Entities/Player.h"
 #include "math.h"
 #include "raylib.h"
 #include "raymath.h"
 
-Player::Player() {
+Player::Player(Texture2D* playerIdle, Texture2D* playerWalk) {
     position = {0.0f, 0.0f};
     speed = 256.0f;
     playerWidth = 50.0f;
@@ -13,10 +13,15 @@ Player::Player() {
     // load Player animation
     std::vector<Vector2> idleFramePos = {{2, 2},  {7, 2},  {12, 2},
                                          {17, 2}, {22, 2}, {27, 2}};
-    animator.AddAnimation("idle", "../assets/soldier-idle.png", {20, 20}, 2,
+    std::vector<Vector2> walkFramePos = {
+        {2, 2}, {7, 2}, {12, 2}, {17, 2}, {22, 2}, {27, 2}, {32, 2}, {37, 2},
+    };
+
+    animator.AddAnimation("idle", playerIdle, {20, 20}, 2,
                           idleFramePos, true);
-    animator.AddAnimation("walk", "../assets/soldier-walk.png", {20, 20}, 8,
-                          idleFramePos, true);
+    animator.AddAnimation("walk", playerWalk, {20, 20}, 12,
+                          walkFramePos, true);
+
     animator.SetState("idle");
 }
 

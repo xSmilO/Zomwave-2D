@@ -1,8 +1,8 @@
 #pragma once
 #include "Animator.h"
-#include "BulletManager.h"
+#include "Managers/BulletManager.h"
 #include "Map.h"
-#include "Pistol.h"
+#include "Weapons/Pistol.h"
 #include "raylib.h"
 
 class Player {
@@ -23,7 +23,7 @@ class Player {
     void CalculateWeaponPos(Vector2 mousePosition);
 
   public:
-    Player();
+    Player(Texture2D* playerIdle, Texture2D* playerWalk);
     void Update(Vector2 mousePosition, Map *map, BulletManager* bulletManager);
     void Draw();
     void SetPosition(Vector2 newPosition);

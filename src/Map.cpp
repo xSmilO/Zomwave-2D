@@ -70,7 +70,7 @@ void Map::DrawLayer(const ldtk::Layer &layer) {
         std::string path = layer.getTileset().path;
         Texture2D currentTexture = tilesets[path];
 
-        printf("%s\n", path.c_str());
+        // printf("%s\n", path.c_str());
 
         for (auto &tile : layer.allTiles()) {
             auto src = tile.getTextureRect();

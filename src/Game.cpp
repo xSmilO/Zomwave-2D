@@ -1,4 +1,6 @@
 #include "Game.h"
+#include "Managers/BulletManager.h"
+#include "Managers/EnemyManager.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <cmath>
@@ -22,18 +24,31 @@ Game::Game() {
 
     InitWindow(screenWidth, screenHeight, "Zomwave 2D");
 
+    resources = new ResourceManager();
+    resources->LoadAll();
+
+    enemyManager = new EnemyManager(resources);
+    bulletManager = new BulletManager();
+
     target = LoadRenderTexture(virtualWidth, virtualHeight);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
     levelMap = new Map();
-    player = new Player();
-    pistol = new Pistol();
+    player = new Player(&resources->playerIdle, &resources->playerWalk);
+    pistol = new Pistol(&resources->pistolTex);
     player->SetWeapon(pistol);
 
     SpawnPlayer();
+    // enemyManager.SpawnEnemy({200.0f, 200.0f});
+    // enemyManager.SpawnEnemy({400.0f, 150.0f});
+    enemyManager->SpawnZombie({704.0f, 600.0f});
 }
 
 Game::~Game() {
+    resources->UnloadAll();
+    delete resources;
+    delete bulletManager;
+    delete enemyManager;
     delete player;
     delete levelMap;
     delete pistol;
@@ -52,9 +67,10 @@ void Game::Draw() {
     BeginMode2D(camera);
 
     levelMap->DrawBackground();
+    enemyManager->Draw();
     player->Draw();
     levelMap->DrawForeground();
-    bulletManager.Draw();
+    bulletManager->Draw();
 
     EndMode2D();
     EndTextureMode();
@@ -85,8 +101,9 @@ void Game::Draw() {
 void Game::Update() {
     float scale = fminf((float)GetScreenWidth() / virtualWidth,
                         (float)GetScreenHeight() / virtualHeight);
-    bulletManager.Update(levelMap);
-    player->Update(mousePosition, levelMap, &bulletManager);
+    bulletManager->Update(levelMap);
+    player->Update(mousePosition, levelMap, bulletManager);
+    enemyManager->Update(player->GetPosition(), levelMap, bulletManager);
     camera.target = player->GetPosition();
 
     Vector2 mouseRaw = GetMousePosition();

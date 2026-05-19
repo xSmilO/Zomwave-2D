@@ -6,7 +6,7 @@
 #include <vector>
 
 struct Animation {
-    Texture2D texture;
+    Texture2D *texture;
     Vector2 frameSize;
     std::vector<Vector2> frames;
     float fps;
@@ -23,12 +23,11 @@ class Animator {
 
   public:
     Animator();
-    ~Animator();
 
     void Update();
     void Draw(Rectangle position, bool flipX = false, float rotation = 0.0f);
     void SetState(std::string state);
-    void AddAnimation(std::string state, std::string texPath, Vector2 frameSize,
+    void AddAnimation(std::string state, Texture2D* texture, Vector2 frameSize,
                       float fps, std::vector<Vector2> framesPos, bool loop);
     void ResetAnimation();
     bool IsAnimationFinished();

@@ -1,4 +1,4 @@
-#include "BulletManager.h"
+#include "Managers/BulletManager.h"
 #include "Map.h"
 
 void BulletManager::SpawnBullet(Vector2 startPos, Vector2 targetPos,

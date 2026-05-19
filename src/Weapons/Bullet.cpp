@@ -1,4 +1,4 @@
-#include "Bullet.h"
+#include "Weapons/Bullet.h"
 #include "raymath.h"
 
 Bullet::Bullet(Vector2 startPos, Vector2 targetPos, float bulletSpeed) {

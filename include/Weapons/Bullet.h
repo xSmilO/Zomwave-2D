@@ -2,6 +2,7 @@
 
 #include "Map.h"
 #include "raylib.h"
+
 class Bullet {
   public:
     Vector2 position;

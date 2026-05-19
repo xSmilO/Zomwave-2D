@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Bullet.h"
+#include "Weapons/Bullet.h"
 #include "Map.h"
 
 class BulletManager {
