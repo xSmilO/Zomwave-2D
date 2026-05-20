@@ -3,15 +3,21 @@
 #include "raylib.h"
 
 class Enemy {
-public:
-    Vector2 position;
+  protected:
     float width, height;
-    float health;
+
+  public:
+    Vector2 position;
     bool active = true;
+    float health;
+    float attackCooldown = 1.0f;
+    float attackTimer = 0.0f;
+    int damage = 15;
+
 
     virtual ~Enemy() = default;
 
-    virtual void Update(Vector2 playerPos, Map* map) = 0;
+    virtual void Update(float dt, Vector2 playerPos, Map *map) = 0;
     virtual void Draw() = 0;
     virtual Rectangle GetHitbox() = 0;
 };

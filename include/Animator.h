@@ -24,7 +24,7 @@ class Animator {
   public:
     Animator();
 
-    void Update();
+    void Update(float dt);
     void Draw(Rectangle position, bool flipX = false, float rotation = 0.0f);
     void SetState(std::string state);
     void AddAnimation(std::string state, Texture2D* texture, Vector2 frameSize,

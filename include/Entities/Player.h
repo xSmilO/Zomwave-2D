@@ -13,20 +13,27 @@ class Player {
     float speed;
     float radius;
     float rotationAngle;
-    float playerWidth;
-    float playerHeight;
+    float width;
+    float height;
     Animator animator;
     bool facingLeft;
     Pistol *weapon;
     Rectangle futureHitbox;
+    float invincibilityDuration;
 
     void CalculateWeaponPos(Vector2 mousePosition);
 
   public:
-    Player(Texture2D* playerIdle, Texture2D* playerWalk);
-    void Update(Vector2 mousePosition, Map *map, BulletManager* bulletManager);
+    float maxHealth;
+    float health;
+    float invincibilityTimer;
+
+    Player(Texture2D *playerIdle, Texture2D *playerWalk);
+    void Update(float dt, Vector2 mousePosition, Map *map, BulletManager *bulletManager);
     void Draw();
     void SetPosition(Vector2 newPosition);
     void SetWeapon(Pistol *pistol);
     Vector2 GetPosition();
+    void TakeDamage(float damage);
+    Rectangle GetHitbox();
 };

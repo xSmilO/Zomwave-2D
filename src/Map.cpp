@@ -26,7 +26,7 @@ Map::Map() {
 }
 
 Map::~Map() {
-    for(auto const& tileset : tilesets) {
+    for (auto const &tileset : tilesets) {
         UnloadTexture(tileset.second);
     }
 }
@@ -49,6 +49,14 @@ Vector2 Map::GetSpawnPoint() {
 }
 
 bool Map::CheckHitbox(Rectangle hitbox) {
+    if (hitbox.x < 100.0f || hitbox.x + hitbox.width > mapSize.x - 100) {
+        return true;
+    }
+
+    if (hitbox.y < 100.0f || hitbox.y + hitbox.height > mapSize.y - 100) {
+        return true;
+    };
+
     if (collisionLayer == nullptr)
         return false;
 
@@ -61,6 +69,7 @@ bool Map::CheckHitbox(Rectangle hitbox) {
         if (CheckCollisionRecs(hitbox, wallRect))
             return true;
     }
+
     return false;
 }
 
@@ -117,4 +126,12 @@ void Map::DrawForeground() {
         if (isForeground)
             DrawLayer(layers[i]);
     }
+
+    // for (auto &tile : collisionLayer->getIntGridValPositions(1)) {
+    //     ldtk::IntPoint pos = tile;
+    //
+    //     Rectangle wallRect = {(float)(pos.x * tileSize),
+    //                           (float)(pos.y * tileSize), tileSize, tileSize};
+    //     DrawRectangleRec(wallRect, GREEN);
+    // }
 }

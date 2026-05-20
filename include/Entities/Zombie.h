@@ -11,7 +11,7 @@ class Zombie : public Enemy {
   public:
     Zombie(Texture2D *zombieWalk, Vector2 startPos);
 
-    void Update(Vector2 playerPos, Map *map) override;
+    void Update(float dt, Vector2 playerPos, Map *map) override;
     void Draw() override;
     Rectangle GetHitbox() override;
 };

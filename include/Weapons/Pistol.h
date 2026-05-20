@@ -4,7 +4,7 @@
 
 class Pistol {
   private:
-    Rectangle _position;
+    Rectangle position;
     double lastTimeShoot;
     float fireRate;
     float fireTimer;
@@ -12,8 +12,10 @@ class Pistol {
     Animator animator;
 
   public:
+    float width;
+    float height;
     Pistol(Texture2D* pistolTex);
-    void Update(Vector2 position, float rotation, float dt);
+    void Update(float dt, Vector2 newPosition, float rotation);
     void Shoot(Vector2 targetPos, BulletManager *bulletManager);
     void Draw();
 };

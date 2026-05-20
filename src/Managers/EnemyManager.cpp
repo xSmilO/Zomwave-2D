@@ -10,10 +10,19 @@ void EnemyManager::SpawnZombie(Vector2 pos) {
     enemies.push_back(std::make_unique<Zombie>(&resources->zombieTex, pos));
 }
 
-void EnemyManager::Update(Vector2 playerPos, Map *map,
+void EnemyManager::Update(float dt, Player *player, Map *map,
                           BulletManager *bulletManager) {
     for (auto &enemy : enemies) {
-        enemy->Update(playerPos, map);
+        enemy->Update(dt, player->GetPosition(), map);
+
+        if (CheckCollisionRecs(enemy->GetHitbox(), player->GetHitbox())) {
+            if (enemy->attackTimer <= 0.0f &&
+                player->invincibilityTimer <= 0.0f) {
+                player->TakeDamage(enemy->damage);
+
+                enemy->attackTimer = enemy->attackCooldown;
+            }
+        }
 
         for (auto &bullet : bulletManager->bullets) {
             if (bullet.active) {
@@ -38,4 +47,12 @@ void EnemyManager::Draw() {
     for (auto &enemy : enemies) {
         enemy->Draw();
     }
+}
+
+std::unique_ptr<Enemy> EnemyManager::CreateZombie() {
+    return std::make_unique<Zombie>(&resources->zombieTex, Vector2{0, 0});
+}
+
+void EnemyManager::AddEnemy(std::unique_ptr<Enemy> enemy) {
+    enemies.push_back(std::move(enemy));
 }

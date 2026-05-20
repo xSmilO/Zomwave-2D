@@ -6,10 +6,12 @@
 Zombie::Zombie(Texture2D *zombieWalk, Vector2 startPos) {
     position = startPos;
     speed = 100.0f;
-    width = 32.0f;
-    height = 32.0f;
+    width = 24.0f;
+    height = 24.0f;
     health = 3;
     active = true;
+    attackTimer = 0.0f;
+    attackCooldown = 1.5f;
 
     std::vector<Vector2> walkFramePos = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
 
@@ -18,13 +20,16 @@ Zombie::Zombie(Texture2D *zombieWalk, Vector2 startPos) {
     animator.SetState("walk");
 }
 
-void Zombie::Update(Vector2 playerPos, Map *map) {
+void Zombie::Update(float dt, Vector2 playerPos, Map *map) {
     if (!active)
         return;
 
-    float dt = GetFrameTime();
 
-    animator.Update();
+    if (attackTimer > 0.0f) {
+        attackTimer -= dt;
+    }
+
+    animator.Update(dt);
 
     Vector2 dir = Vector2Subtract(playerPos, position);
     dir = Vector2Normalize(dir);
@@ -61,7 +66,8 @@ void Zombie::Draw() {
     Rectangle destRec = GetHitbox();
     DrawRectangleRec(destRec, RED);
     animator.Draw(
-        {position.x, position.y - (height / 2), width * 2, height * 2}, texFlip);
+        {position.x, position.y - (height / 2), width * 2, height * 2},
+        texFlip);
 }
 
 Rectangle Zombie::GetHitbox() {

@@ -3,12 +3,17 @@
 #include "raylib.h"
 #include "raymath.h"
 
-Player::Player(Texture2D* playerIdle, Texture2D* playerWalk) {
+Player::Player(Texture2D *playerIdle, Texture2D *playerWalk) {
     position = {0.0f, 0.0f};
+    
     speed = 256.0f;
-    playerWidth = 50.0f;
-    playerHeight = 50.0f;
+    width = 30.0f;
+    height = 30.0f;
     weapon = nullptr;
+
+    maxHealth = 100.0f;
+    health = maxHealth;
+    invincibilityDuration = 0.3f;
 
     // load Player animation
     std::vector<Vector2> idleFramePos = {{2, 2},  {7, 2},  {12, 2},
@@ -17,17 +22,16 @@ Player::Player(Texture2D* playerIdle, Texture2D* playerWalk) {
         {2, 2}, {7, 2}, {12, 2}, {17, 2}, {22, 2}, {27, 2}, {32, 2}, {37, 2},
     };
 
-    animator.AddAnimation("idle", playerIdle, {20, 20}, 2,
-                          idleFramePos, true);
-    animator.AddAnimation("walk", playerWalk, {20, 20}, 12,
-                          walkFramePos, true);
+    animator.AddAnimation("idle", playerIdle, {20, 20}, 2, idleFramePos, true);
+    animator.AddAnimation("walk", playerWalk, {20, 20}, 12, walkFramePos, true);
 
     animator.SetState("idle");
 }
 
-void Player::Update(Vector2 mousePosition, Map *map,
+void Player::Update(float dt, Vector2 mousePosition, Map *map,
                     BulletManager *bulletManager) {
-    float dt = GetFrameTime();
+
+    invincibilityTimer -= dt;
 
     Vector2 inputDir = {0.0f, 0.0f};
 
@@ -55,18 +59,18 @@ void Player::Update(Vector2 mousePosition, Map *map,
 
     float moveX = inputDir.x * speed * dt;
     float moveY = inputDir.y * speed * dt;
-    float hitX = position.x - (playerWidth / 2.0f);
-    float hitY = position.y - (playerHeight / 2.0f);
+    float hitX = position.x - (width / 2.0f);
+    float hitY = position.y - (height / 2.0f);
 
     if (moveX != 0.0f) {
-        futureHitbox = {hitX + moveX, hitY, playerWidth, playerHeight};
+        futureHitbox = {hitX + moveX, hitY, width, height - 4};
         if (map->CheckHitbox(futureHitbox) == false) {
             position.x += moveX;
         }
     }
 
     if (moveY != 0.0f) {
-        futureHitbox = {hitX, hitY + moveY, playerWidth, playerHeight};
+        futureHitbox = {hitX, hitY + moveY, width, height - 4};
         if (map->CheckHitbox(futureHitbox) == false) {
             position.y += moveY;
         }
@@ -85,24 +89,23 @@ void Player::Update(Vector2 mousePosition, Map *map,
 
     CalculateWeaponPos(mousePosition);
 
-    animator.Update();
+    animator.Update(dt);
     if (weapon != nullptr)
-        weapon->Update(weaponPosition, weaponRotation, dt);
+        weapon->Update(dt, weaponPosition, weaponRotation);
 }
 
 void Player::Draw() {
-    // DrawRectangle(position.x - (playerWidth / 2.0f),
-    //               position.y - (playerHeight / 2.0f), 40, 40, RED);
-
-    animator.Draw({position.x, position.y, playerWidth, playerHeight},
-                  facingLeft);
-
-    // DrawRectangleRec(futureHitbox, RED);
+    // DrawRectangleRec(GetHitbox(), BLUE);
+    // DrawRectangleRec(futureHitbox, YELLOW);
+    if (invincibilityTimer > 0.0f) {
+        int blink = (int)(invincibilityTimer * 20.0f);
+        if (blink % 2 == 0)
+            return;
+    }
+    animator.Draw({position.x, position.y, width, height}, facingLeft);
 
     if (weapon != nullptr)
         weapon->Draw();
-
-    // DrawCircleV({position.x, position.y}, 10.0f, RED);
 }
 
 void Player::SetPosition(Vector2 newPosition) { position = newPosition; }
@@ -118,9 +121,24 @@ void Player::CalculateWeaponPos(Vector2 mousePosition) {
     float dy = mousePosition.y - center.y;
     float angleRad = atan2f(dy, dx);
 
-    float orbitRadius = 50.0f;
+    float orbitRadius = weapon->width;
 
     weaponPosition.x = center.x + cosf(angleRad) * orbitRadius;
     weaponPosition.y = center.y + sinf(angleRad) * orbitRadius;
     weaponRotation = angleRad * (180.0f / PI);
+}
+
+void Player::TakeDamage(float damage) {
+    if (invincibilityTimer <= 0.0f) {
+        health -= damage;
+        invincibilityTimer = invincibilityDuration;
+    }
+
+    if (health < 0) {
+        health = maxHealth;
+    }
+}
+
+Rectangle Player::GetHitbox() {
+    return {position.x - (width / 2), position.y - (height / 2) - 4, width, height};
 }

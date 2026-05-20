@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "Managers/BulletManager.h"
 #include "Managers/EnemyManager.h"
+#include "Managers/UIManager.h"
+#include "Managers/WaveManager.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <cmath>
@@ -13,7 +15,7 @@ Game::Game() {
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT |
                    FLAG_WINDOW_RESIZABLE); // set custom flags for desktop
     SetTargetFPS(
-        60); // do not set fps when used in browser for better web performance
+        144); // do not set fps when used in browser for better web performance
 #endif
 
     screenWidth = 1920 / 2;
@@ -27,8 +29,11 @@ Game::Game() {
     resources = new ResourceManager();
     resources->LoadAll();
 
+    uiManager = new UIManager();
+
     enemyManager = new EnemyManager(resources);
     bulletManager = new BulletManager();
+    waveManager = new WaveManager();
 
     target = LoadRenderTexture(virtualWidth, virtualHeight);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
@@ -41,12 +46,13 @@ Game::Game() {
     SpawnPlayer();
     // enemyManager.SpawnEnemy({200.0f, 200.0f});
     // enemyManager.SpawnEnemy({400.0f, 150.0f});
-    enemyManager->SpawnZombie({704.0f, 600.0f});
+    // enemyManager->SpawnZombie({704.0f, 600.0f});
 }
 
 Game::~Game() {
     resources->UnloadAll();
     delete resources;
+    delete uiManager;
     delete bulletManager;
     delete enemyManager;
     delete player;
@@ -73,10 +79,9 @@ void Game::Draw() {
     bulletManager->Draw();
 
     EndMode2D();
-    EndTextureMode();
 
-    std::string playerPos = "(" + std::to_string(player->GetPosition().x) +
-                            "," + std::to_string(player->GetPosition().y) + ")";
+    uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
+    EndTextureMode();
 
     BeginDrawing();
     ClearBackground(BLACK);
@@ -92,18 +97,19 @@ void Game::Draw() {
                       virtualWidth * scale, virtualHeight * scale};
 
     DrawTexturePro(target.texture, source, dest, {0, 0}, 0.0f, WHITE);
-
-    DrawText("Poruszaj sie WSAD", 10, 10, 20, DARKGRAY);
-    DrawText(playerPos.c_str(), 10, 30, 20, DARKGRAY);
     EndDrawing();
 }
 
 void Game::Update() {
+    float dt = GetFrameTime();
     float scale = fminf((float)GetScreenWidth() / virtualWidth,
                         (float)GetScreenHeight() / virtualHeight);
     bulletManager->Update(levelMap);
-    player->Update(mousePosition, levelMap, bulletManager);
-    enemyManager->Update(player->GetPosition(), levelMap, bulletManager);
+    player->Update(dt, mousePosition, levelMap, bulletManager);
+
+    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
+
+    enemyManager->Update(dt, player, levelMap, bulletManager);
     camera.target = player->GetPosition();
 
     Vector2 mouseRaw = GetMousePosition();

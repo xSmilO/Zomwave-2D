@@ -3,13 +3,12 @@
 
 Animator::Animator() { frames = {}; }
 
-
-void Animator::Update() {
+void Animator::Update(float dt) {
     if (currentState == "")
         return;
 
     Animation &anim = frames[currentState];
-    frameTimer += GetFrameTime();
+    frameTimer += dt;
     float timePerFrame = 1.0f / anim.fps;
 
     if (frameTimer >= timePerFrame) {
@@ -52,7 +51,7 @@ void Animator::SetState(std::string state) {
     currentFrame = 0;
 }
 
-void Animator::AddAnimation(std::string state, Texture2D* texture,
+void Animator::AddAnimation(std::string state, Texture2D *texture,
                             Vector2 frameSize, float fps,
                             std::vector<Vector2> framesPos, bool loop) {
     Animation anim;
@@ -65,3 +64,16 @@ void Animator::AddAnimation(std::string state, Texture2D* texture,
 }
 
 void Animator::ResetAnimation() { currentFrame = 0; }
+
+bool Animator::IsAnimationFinished() {
+    if (currentState == "")
+        return false;
+
+    Animation &anim = frames[currentState];
+
+    if (!anim.isLooping && currentFrame == (anim.frames.size() - 1)) {
+        return true;
+    }
+
+    return false;
+}

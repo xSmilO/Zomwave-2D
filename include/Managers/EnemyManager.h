@@ -1,6 +1,7 @@
 #pragma once
 #include "BulletManager.h"
 #include "Entities/Enemy.h"
+#include "Entities/Player.h"
 #include "Managers/ResourceManager.h"
 #include "Map.h"
 #include <memory>
@@ -16,8 +17,11 @@ class EnemyManager {
     std::vector<std::unique_ptr<Enemy>> enemies;
 
     void SpawnZombie(Vector2 pos);
+    void AddEnemy(std::unique_ptr<Enemy> enemy);
 
-    void Update(Vector2 playerPos, Map *map, BulletManager *bulletManager);
-
+    void Update(float dt, Player *player, Map *map,
+                BulletManager *bulletManager);
     void Draw();
+
+    std::unique_ptr<Enemy> CreateZombie();
 };
