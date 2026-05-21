@@ -97,6 +97,22 @@ if(USE_RAYLIB)
         
     # add the dependency here to be linked
     list(APPEND LIBRARIES ${dep})
+
+    list(APPEND LIBRARIES raylib)
+
+    set(dep_gui raygui)
+    add_git_dependency(
+        ${dep_gui}
+        https://github.com/raysan5/raygui.git 
+        HEAD
+    )
+
+    FetchContent_getProperties(${dep_gui})
+    if(NOT ${dep_gui}_POPULATED)
+        FetchContent_Populate(${dep_gui})
+    endif()
+
+    include_directories(${${dep_gui}_SOURCE_DIR}/src)
 endif()
 
 ##########################################################################################

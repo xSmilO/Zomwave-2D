@@ -1,7 +1,9 @@
 #pragma once
 #include "Entities/Player.h"
 #include "Managers/EnemyManager.h"
+#include "Managers/PickupManager.h"
 #include "Managers/ResourceManager.h"
+#include "Managers/ShopManager.h"
 #include "Managers/UIManager.h"
 #include "Managers/WaveManager.h"
 #include "Map.h"
@@ -18,11 +20,14 @@ class Game {
     int screenHeight{};
     Map *levelMap;
     ResourceManager *resources;
+    PickupManager* pickupManager;
     UIManager *uiManager;
 
     BulletManager *bulletManager;
     EnemyManager *enemyManager;
     WaveManager *waveManager;
+
+    ShopManager shopManager;
 
     RenderTexture2D target;
     const int virtualWidth = 800;

@@ -14,7 +14,7 @@ class Pistol {
   public:
     float width;
     float height;
-    Pistol(Texture2D* pistolTex);
+    Pistol(Texture2D* texPistol);
     void Update(float dt, Vector2 newPosition, float rotation);
     void Shoot(Vector2 targetPos, BulletManager *bulletManager);
     void Draw();

@@ -3,7 +3,7 @@
 #include <raymath.h>
 #include <vector>
 
-Zombie::Zombie(Texture2D *zombieWalk, Vector2 startPos) {
+Zombie::Zombie(Texture2D *texZombie, Vector2 startPos) {
     position = startPos;
     speed = 100.0f;
     width = 24.0f;
@@ -15,7 +15,7 @@ Zombie::Zombie(Texture2D *zombieWalk, Vector2 startPos) {
 
     std::vector<Vector2> walkFramePos = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
 
-    animator.AddAnimation("walk", zombieWalk, {32, 32}, 15, walkFramePos, true);
+    animator.AddAnimation("walk", texZombie, {32, 32}, 15, walkFramePos, true);
 
     animator.SetState("walk");
 }

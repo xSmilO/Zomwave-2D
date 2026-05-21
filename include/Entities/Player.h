@@ -10,7 +10,6 @@ class Player {
     Vector2 position;
     Vector2 weaponPosition;
     float weaponRotation;
-    float speed;
     float radius;
     float rotationAngle;
     float width;
@@ -24,9 +23,12 @@ class Player {
     void CalculateWeaponPos(Vector2 mousePosition);
 
   public:
+    float speed;
     float maxHealth;
     float health;
     float invincibilityTimer;
+    int coins;
+    int potions;
 
     Player(Texture2D *playerIdle, Texture2D *playerWalk);
     void Update(float dt, Vector2 mousePosition, Map *map, BulletManager *bulletManager);

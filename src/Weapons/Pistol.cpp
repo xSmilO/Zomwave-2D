@@ -3,14 +3,14 @@
 #include "raylib.h"
 #include "raymath.h"
 
-Pistol::Pistol(Texture2D *pistolTex) {
+Pistol::Pistol(Texture2D *texPistol) {
 
     std::vector<Vector2> shootFramePos = {{0, 0}, {1, 0}, {2, 0},  {3, 0},
                                           {4, 0}, {5, 0}, {6, 0},  {7, 0},
                                           {8, 0}, {9, 0}, {10, 0}, {11, 0}};
 
-    animator.AddAnimation("idle", pistolTex, {64, 32}, 0, {{0, 0}}, false);
-    animator.AddAnimation("shoot", pistolTex, {64, 32}, 38, shootFramePos,
+    animator.AddAnimation("idle", texPistol, {64, 32}, 0, {{0, 0}}, false);
+    animator.AddAnimation("shoot", texPistol, {64, 32}, 38, shootFramePos,
                           false);
 
     animator.SetState("idle");

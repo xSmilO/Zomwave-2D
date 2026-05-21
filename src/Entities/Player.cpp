@@ -5,7 +5,7 @@
 
 Player::Player(Texture2D *playerIdle, Texture2D *playerWalk) {
     position = {0.0f, 0.0f};
-    
+
     speed = 256.0f;
     width = 30.0f;
     height = 30.0f;
@@ -14,6 +14,8 @@ Player::Player(Texture2D *playerIdle, Texture2D *playerWalk) {
     maxHealth = 100.0f;
     health = maxHealth;
     invincibilityDuration = 0.3f;
+    potions = 3;
+    coins = 0;
 
     // load Player animation
     std::vector<Vector2> idleFramePos = {{2, 2},  {7, 2},  {12, 2},
@@ -30,7 +32,6 @@ Player::Player(Texture2D *playerIdle, Texture2D *playerWalk) {
 
 void Player::Update(float dt, Vector2 mousePosition, Map *map,
                     BulletManager *bulletManager) {
-
     invincibilityTimer -= dt;
 
     Vector2 inputDir = {0.0f, 0.0f};
@@ -55,6 +56,15 @@ void Player::Update(float dt, Vector2 mousePosition, Map *map,
 
     if (inputDir.x != 0.0f || inputDir.y != 0.0f) {
         inputDir = Vector2Normalize(inputDir);
+    }
+
+    if (IsKeyPressed(KEY_E) && potions > 0 && health < maxHealth) {
+        potions--;
+        health += 30;
+
+        if (health > maxHealth) {
+            health = maxHealth;
+        }
     }
 
     float moveX = inputDir.x * speed * dt;
@@ -140,5 +150,6 @@ void Player::TakeDamage(float damage) {
 }
 
 Rectangle Player::GetHitbox() {
-    return {position.x - (width / 2), position.y - (height / 2) - 4, width, height};
+    return {position.x - (width / 2), position.y - (height / 2) - 4, width,
+            height};
 }

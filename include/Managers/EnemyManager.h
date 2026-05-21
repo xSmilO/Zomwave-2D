@@ -2,6 +2,7 @@
 #include "BulletManager.h"
 #include "Entities/Enemy.h"
 #include "Entities/Player.h"
+#include "Managers/PickupManager.h"
 #include "Managers/ResourceManager.h"
 #include "Map.h"
 #include <memory>
@@ -20,7 +21,7 @@ class EnemyManager {
     void AddEnemy(std::unique_ptr<Enemy> enemy);
 
     void Update(float dt, Player *player, Map *map,
-                BulletManager *bulletManager);
+                BulletManager *bulletManager, PickupManager* pickupManager);
     void Draw();
 
     std::unique_ptr<Enemy> CreateZombie();

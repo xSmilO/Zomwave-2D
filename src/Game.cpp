@@ -6,7 +6,6 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <cmath>
-#include <string>
 
 Game::Game() {
 #if defined(PLATFORM_WEB)
@@ -29,7 +28,10 @@ Game::Game() {
     resources = new ResourceManager();
     resources->LoadAll();
 
-    uiManager = new UIManager();
+    pickupManager =
+        new PickupManager(&resources->texHealthPotion, &resources->texCoin);
+
+    uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin);
 
     enemyManager = new EnemyManager(resources);
     bulletManager = new BulletManager();
@@ -39,8 +41,8 @@ Game::Game() {
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
     levelMap = new Map();
-    player = new Player(&resources->playerIdle, &resources->playerWalk);
-    pistol = new Pistol(&resources->pistolTex);
+    player = new Player(&resources->texPlayerIdle, &resources->texPlayerWalk);
+    pistol = new Pistol(&resources->texPistol);
     player->SetWeapon(pistol);
 
     SpawnPlayer();
@@ -73,6 +75,7 @@ void Game::Draw() {
     BeginMode2D(camera);
 
     levelMap->DrawBackground();
+    pickupManager->Draw();
     enemyManager->Draw();
     player->Draw();
     levelMap->DrawForeground();
@@ -81,6 +84,9 @@ void Game::Draw() {
     EndMode2D();
 
     uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
+    shopManager.UpdateAndDraw(player, target.texture.width,
+                              target.texture.height);
+
     EndTextureMode();
 
     BeginDrawing();
@@ -102,14 +108,23 @@ void Game::Draw() {
 
 void Game::Update() {
     float dt = GetFrameTime();
+
+    if (IsKeyPressed(KEY_B)) {
+        shopManager.isOpen = !shopManager.isOpen;
+    }
+
+    if (shopManager.isOpen) {
+        dt = 0.0f;
+    }
+
     float scale = fminf((float)GetScreenWidth() / virtualWidth,
                         (float)GetScreenHeight() / virtualHeight);
     bulletManager->Update(levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
-
     waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
+    enemyManager->Update(dt, player, levelMap, bulletManager, pickupManager);
+    pickupManager->Update(dt, player);
 
-    enemyManager->Update(dt, player, levelMap, bulletManager);
     camera.target = player->GetPosition();
 
     Vector2 mouseRaw = GetMousePosition();

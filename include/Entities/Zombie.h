@@ -9,7 +9,7 @@ class Zombie : public Enemy {
     Animator animator;
 
   public:
-    Zombie(Texture2D *zombieWalk, Vector2 startPos);
+    Zombie(Texture2D *texZombie, Vector2 startPos);
 
     void Update(float dt, Vector2 playerPos, Map *map) override;
     void Draw() override;

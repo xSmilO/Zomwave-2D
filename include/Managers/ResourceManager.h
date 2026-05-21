@@ -3,28 +3,34 @@
 
 class ResourceManager {
   public:
-    Texture2D playerIdle;
-    Texture2D playerWalk;
+    Texture2D texPlayerIdle;
+    Texture2D texPlayerWalk;
 
-    Texture2D zombieTex;
+    Texture2D texZombie;
 
-    Texture2D pistolTex;
+    Texture2D texPistol;
+
+    Texture2D texCoin;
+    Texture2D texHealthPotion;
 
     void LoadAll() {
-        playerIdle = LoadTexture("../assets/player_idle.png");
-        playerWalk = LoadTexture("../assets/player_walk.png");
+        texPlayerIdle = LoadTexture("../assets/player_idle.png");
+        texPlayerWalk = LoadTexture("../assets/player_walk.png");
 
-        pistolTex = LoadTexture("../assets/pistol.png");
+        texPistol = LoadTexture("../assets/pistol.png");
 
-        zombieTex = LoadTexture("../assets/zombie_walk.png");
-        // playerIdle = LoadTexture("../assets/player-idle.png");
-        // playerIdle = LoadTexture("../assets/player-idle.png");
+        texZombie = LoadTexture("../assets/zombie_walk.png");
+
+        texCoin = LoadTexture("../assets/coin.png");
+        texHealthPotion = LoadTexture("../assets/health_potion.png");
     }
 
     void UnloadAll() {
-        UnloadTexture(playerIdle);
-        UnloadTexture(playerWalk);
-        UnloadTexture(pistolTex);
-        UnloadTexture(zombieTex);
+        UnloadTexture(texPlayerIdle);
+        UnloadTexture(texPlayerWalk);
+        UnloadTexture(texPistol);
+        UnloadTexture(texZombie);
+        UnloadTexture(texCoin);
+        UnloadTexture(texHealthPotion);
     }
 };

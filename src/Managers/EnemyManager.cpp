@@ -7,11 +7,11 @@ EnemyManager::EnemyManager(ResourceManager *resources) {
 }
 
 void EnemyManager::SpawnZombie(Vector2 pos) {
-    enemies.push_back(std::make_unique<Zombie>(&resources->zombieTex, pos));
+    enemies.push_back(std::make_unique<Zombie>(&resources->texZombie, pos));
 }
 
 void EnemyManager::Update(float dt, Player *player, Map *map,
-                          BulletManager *bulletManager) {
+                          BulletManager *bulletManager, PickupManager* pickupManager) {
     for (auto &enemy : enemies) {
         enemy->Update(dt, player->GetPosition(), map);
 
@@ -33,6 +33,8 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
 
                     if (enemy->health <= 0) {
                         enemy->active = false;
+                        // dropnij coina
+                        pickupManager->Spawn(enemy->position, PickupType::COIN);
                     }
                 }
             }
@@ -50,7 +52,7 @@ void EnemyManager::Draw() {
 }
 
 std::unique_ptr<Enemy> EnemyManager::CreateZombie() {
-    return std::make_unique<Zombie>(&resources->zombieTex, Vector2{0, 0});
+    return std::make_unique<Zombie>(&resources->texZombie, Vector2{0, 0});
 }
 
 void EnemyManager::AddEnemy(std::unique_ptr<Enemy> enemy) {

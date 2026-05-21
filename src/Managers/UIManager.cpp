@@ -1,7 +1,10 @@
 #include "Managers/UIManager.h"
 #include "raylib.h"
 
-UIManager::UIManager() {}
+UIManager::UIManager(Texture2D *texHealthPotion, Texture2D *texCoin) {
+    this->texHealthPotion = texHealthPotion;
+    this->texCoin = texCoin;
+}
 
 void UIManager::DrawHUD(Player *player, WaveManager *waveManager,
                         EnemyManager *enemyManager, int screenWidth) {
@@ -12,6 +15,7 @@ void UIManager::DrawHUD(Player *player, WaveManager *waveManager,
     DrawTime(waveManager, screenWidth);
     DrawWave(waveManager, screenWidth);
     DrawEnemies(enemyManager, screenWidth);
+    DrawLootInfo(player);
 }
 
 void UIManager::DrawWave(WaveManager *waveManager, int screenWidth) {
@@ -71,4 +75,14 @@ void UIManager::DrawEnemies(EnemyManager *enemyManager, int screenWidth) {
              BLACK);
     DrawText(enemyText, screenWidth - enemyTextWidth - 20, 10, enemyFontSize,
              WHITE);
+}
+
+void UIManager::DrawLootInfo(Player *player) {
+    DrawTextureV(*texHealthPotion, {10, 60}, WHITE);
+    DrawText(TextFormat("x %d", player->potions), 32, 60, 20, BLACK);
+    DrawText(TextFormat("x %d", player->potions), 30, 58, 20, WHITE);
+
+    DrawTextureV(*texCoin, {10, 80}, WHITE);
+    DrawText(TextFormat("x %d", player->coins), 32, 80, 20, BLACK);
+    DrawText(TextFormat("x %d", player->coins), 30, 78, 20, WHITE);
 }
