@@ -312,7 +312,8 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
                         barrelEnd, Vector2Scale(finalDirection, 1000));
 
                     bulletManager->Shoot(barrelEnd, bulletTarget, wp->damage,
-                                         BulletType::BULLET, 800, randomOffset, false);
+                                         BulletType::BULLET, 800, randomOffset,
+                                         false);
                 }
 
                 wp->currentAmmo--;
@@ -332,4 +333,23 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
             }
         }
     }
+}
+
+void Player::EquipWeapon(WeaponType type) {
+    for (int i = 0; i < arsenal.size(); ++i) {
+        if (arsenal[i].type == type) {
+            currentWeaponIndex = i;
+            GetActiveWeapon()->animator.SetState("IDLE");
+            break;
+        }
+    }
+}
+
+Weapon* Player::GetWeapon(WeaponType type) {
+    for (int i = 0; i < arsenal.size(); ++i) {
+        if (arsenal[i].type == type) return &arsenal[i];
+        
+    }
+
+    return nullptr;
 }

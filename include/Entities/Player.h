@@ -45,4 +45,6 @@ class Player {
     Rectangle GetHitbox();
     void UpdateWeapon(float dt, Vector2 mousePos, BulletManager *bulletManager);
     Weapon *GetActiveWeapon();
+    void EquipWeapon(WeaponType type);
+    Weapon *GetWeapon(WeaponType type);
 };

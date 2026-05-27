@@ -22,13 +22,13 @@ struct Upgrade {
 class ShopManager {
   private:
     std::vector<Upgrade> upgrades;
-    int activeTab = 0;
+    int currentTab = 1;
 
   public:
     ShopManager();
 
     bool isOpen = false;
 
-    void UpdateAndDraw(Player *player, int screenWidth, int screenHeight);
+    void DrawShop(Player *player);
     void ApplyUpgrade(Player *player, Upgrade &upgrade);
 };
