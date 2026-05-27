@@ -1,17 +1,26 @@
 #include "Managers/EnemyManager.h"
+#include "Entities/Skeleton.h"
 #include "Entities/Zombie.h"
+#include "Managers/BulletManager.h"
 #include <memory>
 
-EnemyManager::EnemyManager(ResourceManager *resources) {
+EnemyManager::EnemyManager(ResourceManager *resources, BulletManager *bm) {
     this->resources = resources;
+    bulletManager = bm;
 }
 
 void EnemyManager::SpawnZombie(Vector2 pos) {
     enemies.push_back(std::make_unique<Zombie>(&resources->texZombie, pos));
 }
 
+void EnemyManager::SpawnSkeleton(Vector2 pos) {
+    enemies.push_back(std::make_unique<Skeleton>(
+        &resources->texSkeleton, &resources->texBow, pos, bulletManager));
+}
+
 void EnemyManager::Update(float dt, Player *player, Map *map,
-                          BulletManager *bulletManager, PickupManager* pickupManager) {
+                          BulletManager *bulletManager,
+                          PickupManager *pickupManager) {
     for (auto &enemy : enemies) {
         enemy->Update(dt, player->GetPosition(), map);
 
@@ -25,10 +34,10 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
         }
 
         for (auto &bullet : bulletManager->bullets) {
-            if (bullet.active) {
+            if (bullet.active && !bullet.isEnemy) {
                 if (CheckCollisionCircleRec(bullet.position, bullet.radius,
                                             enemy->GetHitbox())) {
-                    enemy->health--;
+                    enemy->health -= bullet.damage;
                     bullet.active = false;
 
                     if (enemy->health <= 0) {
@@ -53,6 +62,12 @@ void EnemyManager::Draw() {
 
 std::unique_ptr<Enemy> EnemyManager::CreateZombie() {
     return std::make_unique<Zombie>(&resources->texZombie, Vector2{0, 0});
+}
+
+std::unique_ptr<Enemy> EnemyManager::CreateSkeleton() {
+    return std::make_unique<Skeleton>(&resources->texSkeleton,
+                                      &resources->texBow, Vector2{0, 0},
+                                      bulletManager);
 }
 
 void EnemyManager::AddEnemy(std::unique_ptr<Enemy> enemy) {

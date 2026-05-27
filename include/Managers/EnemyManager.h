@@ -11,13 +11,16 @@
 class EnemyManager {
   private:
     ResourceManager *resources;
+    BulletManager* bulletManager;
 
   public:
-    EnemyManager(ResourceManager *resources);
+    EnemyManager(ResourceManager *resources, BulletManager* bm);
 
     std::vector<std::unique_ptr<Enemy>> enemies;
 
     void SpawnZombie(Vector2 pos);
+    void SpawnSkeleton(Vector2 pos);
+
     void AddEnemy(std::unique_ptr<Enemy> enemy);
 
     void Update(float dt, Player *player, Map *map,
@@ -25,4 +28,5 @@ class EnemyManager {
     void Draw();
 
     std::unique_ptr<Enemy> CreateZombie();
+    std::unique_ptr<Enemy> CreateSkeleton();
 };

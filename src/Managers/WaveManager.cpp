@@ -36,15 +36,23 @@ void WaveManager::Update(float dt, EnemyManager *enemyManager,
     spawnTimer += dt;
     if (spawnTimer >= currentSpawnInterval) {
         std::unique_ptr<Enemy> newEnemy = nullptr;
+        int skeletonChance = 10 + (currentWave * 5);
 
-        if (newEnemy == nullptr) {
+        if (skeletonChance > 40) {
+            skeletonChance = 40;
+        }
+
+        int roll = GetRandomValue(1, 100);
+
+        if (roll <= skeletonChance) {
+            newEnemy = enemyManager->CreateSkeleton();
+        } else {
             newEnemy = enemyManager->CreateZombie();
         }
 
         if (newEnemy != nullptr) {
             if (TryFindSpawnPos(playerPos, newEnemy.get(), map)) {
                 enemyManager->AddEnemy(std::move(newEnemy));
-
                 spawnTimer = 0.0f;
             }
         }

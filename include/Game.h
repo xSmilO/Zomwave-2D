@@ -7,7 +7,6 @@
 #include "Managers/UIManager.h"
 #include "Managers/WaveManager.h"
 #include "Map.h"
-#include "Weapons/Pistol.h"
 #include "raylib.h"
 
 class Game {
@@ -15,7 +14,6 @@ class Game {
     Camera2D camera;
     Vector2 mousePosition;
     Player *player;
-    Pistol *pistol;
     int screenWidth{};
     int screenHeight{};
     Map *levelMap;

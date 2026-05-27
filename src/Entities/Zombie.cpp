@@ -8,7 +8,7 @@ Zombie::Zombie(Texture2D *texZombie, Vector2 startPos) {
     speed = 100.0f;
     width = 24.0f;
     height = 24.0f;
-    health = 3;
+    health = 60.0f;
     active = true;
     attackTimer = 0.0f;
     attackCooldown = 1.5f;

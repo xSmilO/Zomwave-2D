@@ -33,22 +33,21 @@ Game::Game() {
 
     uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin);
 
-    enemyManager = new EnemyManager(resources);
-    bulletManager = new BulletManager();
+    bulletManager = new BulletManager(&resources->texBullet, &resources->texArrow);
+    enemyManager = new EnemyManager(resources, bulletManager);
     waveManager = new WaveManager();
 
     target = LoadRenderTexture(virtualWidth, virtualHeight);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
     levelMap = new Map();
-    player = new Player(&resources->texPlayerIdle, &resources->texPlayerWalk);
-    pistol = new Pistol(&resources->texPistol);
-    player->SetWeapon(pistol);
+    player = new Player(resources);
 
     SpawnPlayer();
     // enemyManager.SpawnEnemy({200.0f, 200.0f});
     // enemyManager.SpawnEnemy({400.0f, 150.0f});
     // enemyManager->SpawnZombie({704.0f, 600.0f});
+    enemyManager->SpawnSkeleton({500.0f, 350.0f});
 }
 
 Game::~Game() {
@@ -59,7 +58,6 @@ Game::~Game() {
     delete enemyManager;
     delete player;
     delete levelMap;
-    delete pistol;
     UnloadRenderTexture(target);
     CloseWindow();
 }
@@ -119,14 +117,25 @@ void Game::Update() {
 
     float scale = fminf((float)GetScreenWidth() / virtualWidth,
                         (float)GetScreenHeight() / virtualHeight);
-    bulletManager->Update(levelMap);
+
+    bulletManager->Update(dt, levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
-    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
+    // waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
     enemyManager->Update(dt, player, levelMap, bulletManager, pickupManager);
     pickupManager->Update(dt, player);
 
-    camera.target = player->GetPosition();
+    for(auto& bullet : bulletManager->bullets) {
+        if(!bullet.active) continue; 
 
+        if(!bullet.isEnemy) continue;
+
+        if(CheckCollisionRecs(player->GetHitbox(), bullet.GetHitbox())) {
+            player->TakeDamage(bullet.damage);
+            bullet.active = false;
+        }
+    }
+
+    camera.target = player->GetPosition();
     Vector2 mouseRaw = GetMousePosition();
     mousePosition.x =
         (mouseRaw.x - (GetScreenWidth() - (virtualWidth * scale)) * 0.5f) /

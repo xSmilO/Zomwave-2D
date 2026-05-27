@@ -1,8 +1,9 @@
 #pragma once
 #include "Animator.h"
 #include "Managers/BulletManager.h"
+#include "Managers/ResourceManager.h"
 #include "Map.h"
-#include "Weapons/Pistol.h"
+#include "Weapon.h"
 #include "raylib.h"
 
 class Player {
@@ -16,11 +17,15 @@ class Player {
     float height;
     Animator animator;
     bool facingLeft;
-    Pistol *weapon;
     Rectangle futureHitbox;
     float invincibilityDuration;
+    std::vector<Weapon> arsenal;
+    int currentWeaponIndex;
+    float shootTimer;
+    ResourceManager *resourceManager;
 
     void CalculateWeaponPos(Vector2 mousePosition);
+    void InitializeArsenal();
 
   public:
     float speed;
@@ -30,12 +35,14 @@ class Player {
     int coins;
     int potions;
 
-    Player(Texture2D *playerIdle, Texture2D *playerWalk);
-    void Update(float dt, Vector2 mousePosition, Map *map, BulletManager *bulletManager);
+    Player(ResourceManager *resourceManager);
+    void Update(float dt, Vector2 mousePosition, Map *map,
+                BulletManager *bulletManager);
     void Draw();
     void SetPosition(Vector2 newPosition);
-    void SetWeapon(Pistol *pistol);
     Vector2 GetPosition();
     void TakeDamage(float damage);
     Rectangle GetHitbox();
+    void UpdateWeapon(float dt, Vector2 mousePos, BulletManager *bulletManager);
+    Weapon *GetActiveWeapon();
 };

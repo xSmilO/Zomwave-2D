@@ -27,8 +27,9 @@ class Animator {
     void Update(float dt);
     void Draw(Rectangle position, bool flipX = false, float rotation = 0.0f);
     void SetState(std::string state);
-    void AddAnimation(std::string state, Texture2D* texture, Vector2 frameSize,
+    void AddAnimation(std::string state, Texture2D *texture, Vector2 frameSize,
                       float fps, std::vector<Vector2> framesPos, bool loop);
     void ResetAnimation();
+    std::string GetState() const { return currentState; }
     bool IsAnimationFinished();
 };
