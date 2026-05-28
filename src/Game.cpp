@@ -17,8 +17,8 @@ Game::Game() {
         144); // do not set fps when used in browser for better web performance
 #endif
 
-    screenWidth = 1920 / 2;
-    screenHeight = 1080 / 2;
+    screenWidth = 1920;
+    screenHeight = 1080;
     camera.offset = {virtualWidth / 2.0f, virtualHeight / 2.0f};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
@@ -84,7 +84,7 @@ void Game::Draw() {
 
     uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
 
-    shopManager.DrawShop(player);
+    shopManager.DrawShop(player, resources);
     EndTextureMode();
 
     BeginDrawing();

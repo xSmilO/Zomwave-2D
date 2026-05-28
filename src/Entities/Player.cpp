@@ -20,7 +20,7 @@ Player::Player(ResourceManager *resourceManager) {
     health = maxHealth;
     invincibilityDuration = 0.3f;
     potions = 3;
-    coins = 0;
+    coins = 10000;
 
     // load Player animation
     std::vector<Vector2> idleFramePos = {{2, 2},  {7, 2},  {12, 2},
@@ -339,16 +339,17 @@ void Player::EquipWeapon(WeaponType type) {
     for (int i = 0; i < arsenal.size(); ++i) {
         if (arsenal[i].type == type) {
             currentWeaponIndex = i;
+            printf("znalezione tej\n");
             GetActiveWeapon()->animator.SetState("IDLE");
             break;
         }
     }
 }
 
-Weapon* Player::GetWeapon(WeaponType type) {
+Weapon *Player::GetWeapon(WeaponType type) {
     for (int i = 0; i < arsenal.size(); ++i) {
-        if (arsenal[i].type == type) return &arsenal[i];
-        
+        if (arsenal[i].type == type)
+            return &arsenal[i];
     }
 
     return nullptr;
