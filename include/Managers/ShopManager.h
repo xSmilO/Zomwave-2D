@@ -27,6 +27,10 @@ class ShopManager {
     Vector2 scrollOffset = {0, 0};
     ResourceManager* resourceManager;
     Rectangle windowBounds = {100, 25, 600, 400};
+    int potionCost = 50;
+    int potionsBought = 0;
+
+    void CalculateNewPrices();
 
   public:
     ShopManager();

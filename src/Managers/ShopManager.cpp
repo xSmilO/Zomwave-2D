@@ -30,24 +30,17 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
     if (!isOpen)
         return;
 
-    // 1. Tło pauzy
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.8f));
 
-    // 2. Główne okno korzysta z naszej zmiennej bazowej!
-    if (GuiWindowBox(windowBounds, "Sklep u Zombiaka")) {
+    if (GuiWindowBox(windowBounds, "Sklep")) {
         isOpen = false;
     }
 
     // --- DEFINIOWANIE MARGINESÓW (PADDINGU) ---
     float padding = 20.0f;
-    float headerY =
-        windowBounds.y +
-        40.0f; // 40px w dół od góry okna (zostawiamy miejsce na pasek "X")
-    float startX =
-        windowBounds.x +
-        padding; // Wszystko wewnątrz zaczyna się od lewej z marginesem
+    float headerY = windowBounds.y + 40.0f;
+    float startX = windowBounds.x + padding;
 
-    // Etykieta kasy
     GuiLabel({startX, headerY, 200, 30},
              TextFormat("Kasa: $%d", player->coins));
 
@@ -80,8 +73,7 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
         BeginScissorMode((int)view.x, (int)view.y, (int)view.width,
                          (int)view.height);
 
-        // --- WYMIARY KAFELKÓW (KARTY) ---
-        float tileWidth = 200.0f; // Węższe, jak karty
+        float tileWidth = 200.0f;
         float tileHeight =
             contentBounds.height -
             20.0f; // Rozciągnięte na prawie całą wysokość scrolla
@@ -97,7 +89,7 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
             resourceManager->texPistolShoot, resourceManager->texMp5Shoot,
             resourceManager->texAk47Shoot, resourceManager->texAk47Shoot};
         Rectangle texSource[4] = {
-            {20, 0, 30, 36}, {0, 0, 64, 36}, {0, 0, 80, 36}, {0, 0, 20, 20}};
+            {18, 0, 30, 36}, {0, 0, 64, 36}, {0, 0, 80, 36}, {0, 0, 20, 20}};
 
         for (int i = 0; i < 4; i++) {
 
@@ -193,20 +185,21 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
     else if (currentTab == 1) {
 
         // POTKA: Leczenie
-        if (GuiButton({120, 140, 300, 40}, "Wypij Miksture (+50 HP) [$50]")) {
-            if (player->coins >= 50 && player->health < player->maxHealth) {
-                player->coins -= 50;
-                player->health += 50;
-                if (player->health > player->maxHealth)
-                    player->health = player->maxHealth;
+        if (GuiButton({120, 140, 300, 40},
+                      TextFormat("Kup Miksture [$%d]", potionCost))) {
+            if (player->coins >= potionCost) {
+                player->coins -= potionCost;
+                player->potions++;
+                potionsBought++;
+                CalculateNewPrices();
             }
         }
 
         // ULEPSZENIE: Max HP
         if (GuiButton({120, 190, 300, 40},
-                      TextFormat("Ulepsz Max HP (+20) [$150] (Aktualne: %d)",
+                      TextFormat("Ulepsz Max HP (+20) [$350] (Aktualne: %d)",
                                  player->maxHealth))) {
-            if (player->coins >= 150) {
+            if (player->coins >= 350) {
                 player->coins -= 150;
                 player->maxHealth += 20;
                 player->health += 20; // Dajemy graczowi to HP od razu, żeby nie
@@ -227,4 +220,8 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
 
         // Granaty w przyszłości wrzucisz pod współrzędną Y: 290
     }
+}
+
+void ShopManager::CalculateNewPrices() {
+    potionCost = potionCost + (30 * (float)(potionsBought * 1.1));
 }
