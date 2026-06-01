@@ -19,7 +19,7 @@ class Player {
     bool facingLeft;
     Rectangle futureHitbox;
     float invincibilityDuration;
-    std::vector<Weapon> arsenal;
+    std::vector<std::unique_ptr<Weapon>> arsenal;
     int currentWeaponIndex;
     float shootTimer;
     ResourceManager *resourceManager;
@@ -40,9 +40,12 @@ class Player {
                 BulletManager *bulletManager);
     void Draw();
     void SetPosition(Vector2 newPosition);
-    Vector2 GetPosition();
-    void TakeDamage(float damage);
-    Rectangle GetHitbox();
     void UpdateWeapon(float dt, Vector2 mousePos, BulletManager *bulletManager);
+    void TakeDamage(float damage);
+    Vector2 GetPosition();
+    Rectangle GetHitbox();
     Weapon *GetActiveWeapon();
+    Weapon *GetWeapon(WeaponType type);
+    void EquipWeapon(WeaponType type);
+    void UpgradeWeapon();
 };

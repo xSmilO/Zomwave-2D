@@ -9,6 +9,7 @@ Zombie::Zombie(Texture2D *texZombie, Vector2 startPos) {
     width = 24.0f;
     height = 24.0f;
     health = 60.0f;
+    maxHealth = health;
     active = true;
     attackTimer = 0.0f;
     attackCooldown = 1.5f;
@@ -23,7 +24,6 @@ Zombie::Zombie(Texture2D *texZombie, Vector2 startPos) {
 void Zombie::Update(float dt, Vector2 playerPos, Map *map) {
     if (!active)
         return;
-
 
     if (attackTimer > 0.0f) {
         attackTimer -= dt;
@@ -68,6 +68,8 @@ void Zombie::Draw() {
     animator.Draw(
         {position.x, position.y - (height / 2), width * 2, height * 2},
         texFlip);
+
+    DrawHealthBar();
 }
 
 Rectangle Zombie::GetHitbox() {

@@ -27,6 +27,8 @@ class ResourceManager {
 
     Texture2D texBow;
 
+    Texture2D texSkyBox;
+
     void LoadAll() {
         texPlayerIdle = LoadTexture("../assets/player_idle.png");
         texPlayerWalk = LoadTexture("../assets/player_walk.png");
@@ -50,6 +52,7 @@ class ResourceManager {
         texBullet = LoadTexture("../assets/bullet.png");
         texArrow = LoadTexture("../assets/arrow.png");
         texBow = LoadTexture("../assets/bow.png");
+        texSkyBox = LoadTexture("../assets/skybox.png");
     }
 
     void UnloadAll() {
@@ -68,5 +71,6 @@ class ResourceManager {
         UnloadTexture(texBullet);
         UnloadTexture(texArrow);
         UnloadTexture(texBow);
+        UnloadTexture(texSkyBox);
     }
 };

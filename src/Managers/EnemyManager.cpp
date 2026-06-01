@@ -2,6 +2,7 @@
 #include "Entities/Skeleton.h"
 #include "Entities/Zombie.h"
 #include "Managers/BulletManager.h"
+#include "raymath.h"
 #include <memory>
 
 EnemyManager::EnemyManager(ResourceManager *resources, BulletManager *bm) {
@@ -52,6 +53,41 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
 
     std::erase_if(enemies,
                   [](const std::unique_ptr<Enemy> &e) { return !e->active; });
+
+    std::vector<Vector2> oldPositions(enemies.size());
+
+    for (size_t i = 0; i < enemies.size(); i++) {
+        oldPositions[i] = enemies[i]->position;
+    }
+
+    for (size_t i = 0; i < enemies.size(); i++) {
+        for (size_t j = i + 1; j < enemies.size(); j++) {
+            Enemy *e1 = enemies[i].get();
+            Enemy *e2 = enemies[j].get();
+
+            Vector2 diff = Vector2Subtract(e1->position, e2->position);
+            float distance = Vector2Length(diff);
+
+            float minDistance = 30.0f;
+
+            if (distance < minDistance && distance > 0.01f) {
+                printf("pchanie\n");
+                float overlap = minDistance - distance;
+
+                Vector2 direction = Vector2Normalize(diff);
+
+                Vector2 pushVector = Vector2Scale(direction, overlap * 0.5f);
+
+                e1->position = Vector2Add(e1->position, pushVector);
+                e2->position = Vector2Subtract(e2->position, pushVector);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < enemies.size(); i++) {
+        if (map->CheckHitbox(enemies[i]->GetHitbox()))
+            enemies[i]->position = oldPositions[i];
+    }
 }
 
 void EnemyManager::Draw() {

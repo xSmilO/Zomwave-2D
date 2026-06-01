@@ -12,7 +12,6 @@ void BulletManager::Shoot(Vector2 startPos, Vector2 targetPos, float damage,
                           bool isEnemy) {
     Vector2 direction = Vector2Subtract(targetPos, startPos);
 
-    printf("%f %f\n", targetPos.x, targetPos.y);
     float angle = atan2(direction.y, direction.x);
 
     angle += spreadAngle * DEG2RAD;

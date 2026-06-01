@@ -17,8 +17,8 @@ Game::Game() {
         144); // do not set fps when used in browser for better web performance
 #endif
 
-    screenWidth = 1920 / 2;
-    screenHeight = 1080 / 2;
+    screenWidth = 1920;
+    screenHeight = 1080;
     camera.offset = {virtualWidth / 2.0f, virtualHeight / 2.0f};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
@@ -33,7 +33,8 @@ Game::Game() {
 
     uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin);
 
-    bulletManager = new BulletManager(&resources->texBullet, &resources->texArrow);
+    bulletManager =
+        new BulletManager(&resources->texBullet, &resources->texArrow);
     enemyManager = new EnemyManager(resources, bulletManager);
     waveManager = new WaveManager();
 
@@ -47,7 +48,7 @@ Game::Game() {
     // enemyManager.SpawnEnemy({200.0f, 200.0f});
     // enemyManager.SpawnEnemy({400.0f, 150.0f});
     // enemyManager->SpawnZombie({704.0f, 600.0f});
-    enemyManager->SpawnSkeleton({500.0f, 350.0f});
+    // enemyManager->SpawnSkeleton({500.0f, 350.0f});
 }
 
 Game::~Game() {
@@ -70,6 +71,9 @@ void Game::Draw() {
 #endif
     BeginTextureMode(target);
     ClearBackground(RAYWHITE);
+
+    DrawTexture(resources->texSkyBox, 0, 0, WHITE);
+
     BeginMode2D(camera);
 
     levelMap->DrawBackground();
@@ -82,9 +86,8 @@ void Game::Draw() {
     EndMode2D();
 
     uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
-    shopManager.UpdateAndDraw(player, target.texture.width,
-                              target.texture.height);
 
+    shopManager.DrawShop(player, resources);
     EndTextureMode();
 
     BeginDrawing();
@@ -101,10 +104,19 @@ void Game::Draw() {
                       virtualWidth * scale, virtualHeight * scale};
 
     DrawTexturePro(target.texture, source, dest, {0, 0}, 0.0f, WHITE);
+
     EndDrawing();
 }
 
 void Game::Update() {
+    float scale = fminf((float)GetScreenWidth() / virtualWidth,
+                        (float)GetScreenHeight() / virtualHeight);
+    float offsetX = (GetScreenWidth() - (virtualWidth * scale)) * 0.5f;
+    float offsetY = (GetScreenHeight() - (virtualHeight * scale)) * 0.5f;
+
+    SetMouseOffset(-(int)offsetX, -(int)offsetY);
+    SetMouseScale(1.0f / scale, 1.0f / scale);
+
     float dt = GetFrameTime();
 
     if (IsKeyPressed(KEY_B)) {
@@ -115,37 +127,30 @@ void Game::Update() {
         dt = 0.0f;
     }
 
-    float scale = fminf((float)GetScreenWidth() / virtualWidth,
-                        (float)GetScreenHeight() / virtualHeight);
-
     bulletManager->Update(dt, levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
-    // waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
+    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
     enemyManager->Update(dt, player, levelMap, bulletManager, pickupManager);
     pickupManager->Update(dt, player);
 
-    for(auto& bullet : bulletManager->bullets) {
-        if(!bullet.active) continue; 
+    for (auto &bullet : bulletManager->bullets) {
+        if (!bullet.active)
+            continue;
 
-        if(!bullet.isEnemy) continue;
+        if (!bullet.isEnemy)
+            continue;
 
-        if(CheckCollisionRecs(player->GetHitbox(), bullet.GetHitbox())) {
+        if (CheckCollisionRecs(player->GetHitbox(), bullet.GetHitbox())) {
             player->TakeDamage(bullet.damage);
             bullet.active = false;
         }
     }
 
     camera.target = player->GetPosition();
-    Vector2 mouseRaw = GetMousePosition();
-    mousePosition.x =
-        (mouseRaw.x - (GetScreenWidth() - (virtualWidth * scale)) * 0.5f) /
-        scale;
-    mousePosition.y =
-        (mouseRaw.y - (GetScreenHeight() - (virtualHeight * scale)) * 0.5f) /
-        scale;
+    Vector2 mouseScreen = GetMousePosition();
 
-    mousePosition.x = Clamp(mousePosition.x, 0, virtualWidth);
-    mousePosition.y = Clamp(mousePosition.y, 0, virtualHeight);
+    mousePosition.x = Clamp(mouseScreen.x, 0, virtualWidth);
+    mousePosition.y = Clamp(mouseScreen.y, 0, virtualHeight);
 
     mousePosition = GetScreenToWorld2D(mousePosition, camera);
 }

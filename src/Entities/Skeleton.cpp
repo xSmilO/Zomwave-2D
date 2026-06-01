@@ -9,6 +9,7 @@ Skeleton::Skeleton(Texture2D *texCharacter, Texture2D *texBow, Vector2 startPos,
     position = startPos;
     width = 20.0f;
     height = 20.0f;
+    maxHealth = health;
     health = 80.0f;
 
     std::vector<Vector2> walkFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0},
@@ -119,6 +120,7 @@ void Skeleton::Draw() {
 
     bowAnimator.Draw({bowPosition.x, bowPosition.y, bowWidth, bowHeight}, false,
                      bowRotation);
+    DrawHealthBar();
 }
 Rectangle Skeleton::GetHitbox() {
     return {position.x - (width / 2.0f), position.y - (height / 2.0f), width,

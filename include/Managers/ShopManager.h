@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entities/Player.h"
+#include "Managers/ResourceManager.h"
 #include <string>
 #include <vector>
 enum class UpgradeType { MAX_HP, SPEED };
@@ -22,13 +23,20 @@ struct Upgrade {
 class ShopManager {
   private:
     std::vector<Upgrade> upgrades;
-    int activeTab = 0;
+    int currentTab = 0;
+    Vector2 scrollOffset = {0, 0};
+    ResourceManager* resourceManager;
+    Rectangle windowBounds = {100, 25, 600, 400};
+    int potionCost = 50;
+    int potionsBought = 0;
+
+    void CalculateNewPrices();
 
   public:
     ShopManager();
 
     bool isOpen = false;
 
-    void UpdateAndDraw(Player *player, int screenWidth, int screenHeight);
+    void DrawShop(Player *player, ResourceManager* resourceManager);
     void ApplyUpgrade(Player *player, Upgrade &upgrade);
 };

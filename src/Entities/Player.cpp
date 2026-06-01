@@ -11,6 +11,7 @@
 Player::Player(ResourceManager *resourceManager) {
     this->resourceManager = resourceManager;
     position = {0.0f, 0.0f};
+    currentWeaponIndex = 0;
 
     speed = 256.0f;
     width = 30.0f;
@@ -20,7 +21,7 @@ Player::Player(ResourceManager *resourceManager) {
     health = maxHealth;
     invincibilityDuration = 0.3f;
     potions = 3;
-    coins = 0;
+    coins = 10000;
 
     // load Player animation
     std::vector<Vector2> idleFramePos = {{2, 2},  {7, 2},  {12, 2},
@@ -158,114 +159,114 @@ Rectangle Player::GetHitbox() {
 }
 
 void Player::InitializeArsenal() {
-    Weapon pistol;
-    pistol.name = "Glock-18";
-    pistol.type = WeaponType::PISTOL;
-    pistol.width = 40;
-    pistol.height = 32;
-    pistol.maxAmmo = 12;
-    pistol.currentAmmo = pistol.maxAmmo;
-    pistol.damage = 10;
-    pistol.isUnlocked = true;
-    pistol.reloadTime = 1.5f;
-    pistol.fireCooldown = 0.45f;
-    pistol.upgradeCost = 50;
-    pistol.currentLevel = 1;
-    pistol.maxLevel = 5;
-    pistol.barrelOffest = {15, -8};
-    std::vector<Vector2> shootFramePos = {{0, 0}, {1, 0}, {2, 0},  {3, 0},
-                                          {4, 0}, {5, 0}, {6, 0},  {7, 0},
-                                          {8, 0}, {9, 0}, {10, 0}, {11, 0}};
-    std::vector<Vector2> reloadFramePos = {
-        {0, 0}, {1, 0}, {2, 0},  {3, 0},  {4, 0},  {5, 0},  {6, 0},  {7, 0},
-        {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0}, {13, 0}, {14, 0}, {15, 0}};
+    std::vector<Vector2> shootFramePos = {};
+    std::vector<Vector2> reloadFramePos = {};
+    arsenal.push_back(std::make_unique<Weapon>());
+    Weapon *pistol = arsenal.back().get();
+    pistol->name = "Glock-18";
+    pistol->type = WeaponType::PISTOL;
+    pistol->width = 40;
+    pistol->height = 32;
+    pistol->maxAmmo = 12;
+    pistol->currentAmmo = pistol->maxAmmo;
+    pistol->damage = 10;
+    pistol->isUnlocked = true;
+    pistol->reloadTime = 1.5f;
+    pistol->fireCooldown = 0.45f;
+    pistol->upgradeCost = 50;
+    pistol->currentLevel = 1;
+    pistol->maxLevel = 5;
+    pistol->barrelOffest = {15, -8};
+
+    shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
+                     {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
+    reloadFramePos = {{0, 0},  {1, 0},  {2, 0},  {3, 0}, {4, 0},  {5, 0},
+                      {6, 0},  {7, 0},  {8, 0},  {9, 0}, {10, 0}, {11, 0},
+                      {12, 0}, {13, 0}, {14, 0}, {15, 0}};
 
     std::reverse(reloadFramePos.begin(), reloadFramePos.end());
 
-    pistol.animator.AddAnimation("IDLE", &resourceManager->texPistolShoot,
-                                 {64, 48}, 0, {{0, 0}}, false);
-    pistol.animator.AddAnimation("SHOOT", &resourceManager->texPistolShoot,
-                                 {64, 48}, 42, shootFramePos, false);
-    pistol.animator.AddAnimation("RELOAD", &resourceManager->texPistolReload,
-                                 {64, 48}, 24, reloadFramePos, false);
+    pistol->animator.AddAnimation("IDLE", &resourceManager->texPistolShoot,
+                                  {64, 48}, 0, {{0, 0}}, false);
+    pistol->animator.AddAnimation("SHOOT", &resourceManager->texPistolShoot,
+                                  {64, 48}, 42, shootFramePos, false);
+    pistol->animator.AddAnimation("RELOAD", &resourceManager->texPistolReload,
+                                  {64, 48}, 24, reloadFramePos, false);
 
-    pistol.animator.SetState("IDLE");
-    arsenal.push_back(pistol);
+    pistol->animator.SetState("IDLE");
 
-    Weapon mp5;
-    mp5.name = "Mp5";
-    mp5.type = WeaponType::SMG;
-    mp5.width = 50;
-    mp5.height = 34;
-    mp5.maxAmmo = 25;
-    mp5.currentAmmo = mp5.maxAmmo;
-    mp5.damage = 8;
-    mp5.spread = 1.5f;
-    mp5.isUnlocked = false;
-    mp5.reloadTime = 1.5f;
-    mp5.fireCooldown = 0.1f;
-    mp5.unlockCost = 500;
-    mp5.upgradeCost = 150;
-    mp5.currentLevel = 1;
-    mp5.maxLevel = 8;
-    mp5.barrelOffest = {16, -10};
+    arsenal.push_back(std::make_unique<Weapon>());
+    Weapon *mp5 = arsenal.back().get();
+    mp5->name = "Mp5";
+    mp5->type = WeaponType::SMG;
+    mp5->width = 50;
+    mp5->height = 34;
+    mp5->maxAmmo = 25;
+    mp5->currentAmmo = mp5->maxAmmo;
+    mp5->damage = 8;
+    mp5->spread = 1.5f;
+    mp5->isUnlocked = false;
+    mp5->reloadTime = 1.5f;
+    mp5->fireCooldown = 0.1f;
+    mp5->unlockCost = 500;
+    mp5->upgradeCost = 150;
+    mp5->currentLevel = 1;
+    mp5->maxLevel = 8;
+    mp5->barrelOffest = {16, -10};
     shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
                      {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
     reloadFramePos = {{0, 0},  {1, 0},  {2, 0},  {3, 0}, {4, 0},  {5, 0},
                       {6, 0},  {7, 0},  {8, 0},  {9, 0}, {10, 0}, {11, 0},
                       {12, 0}, {13, 0}, {14, 0}, {15, 0}};
 
-    // std::reverse(reloadFramePos.begin(), reloadFramePos.end());
-
-    mp5.animator.AddAnimation("IDLE", &resourceManager->texMp5Shoot, {80, 48},
-                              0, {{0, 0}}, false);
-    mp5.animator.AddAnimation("SHOOT", &resourceManager->texMp5Shoot, {80, 48},
-                              42, shootFramePos, false);
-    mp5.animator.AddAnimation("RELOAD", &resourceManager->texMp5Reload,
-                              {80, 48}, 24, reloadFramePos, false);
-
-    mp5.animator.SetState("IDLE");
-    arsenal.push_back(mp5);
-
-    Weapon ak47;
-    ak47.name = "Ak-47";
-    ak47.type = WeaponType::ASSAULT_RIFLE;
-    ak47.width = 60;
-    ak47.height = 36;
-    ak47.maxAmmo = 31;
-    ak47.currentAmmo = ak47.maxAmmo;
-    ak47.damage = 8;
-    ak47.spread = 1.5f;
-    ak47.isUnlocked = false;
-    ak47.reloadTime = 1.5f;
-    ak47.fireCooldown = 0.15f;
-    ak47.upgradeCost = 200;
-    ak47.unlockCost = 1500;
-    ak47.currentLevel = 1;
-    ak47.maxLevel = 10;
-    ak47.barrelOffest = {18, -10};
-    shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
-                     {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
-    reloadFramePos = {{0, 0},  {1, 0},  {2, 0},  {3, 0}, {4, 0},  {5, 0},
-                      {6, 0},  {7, 0},  {8, 0},  {9, 0}, {10, 0}, {11, 0},
-                      {12, 0}, {13, 0}, {14, 0}, {15, 0}};
-
-    // std::reverse(reloadFramePos.begin(), reloadFramePos.end());
-
-    ak47.animator.AddAnimation("IDLE", &resourceManager->texAk47Shoot, {96, 48},
+    mp5->animator.AddAnimation("IDLE", &resourceManager->texMp5Shoot, {80, 48},
                                0, {{0, 0}}, false);
-    ak47.animator.AddAnimation("SHOOT", &resourceManager->texAk47Shoot,
-                               {96, 48}, 42, shootFramePos, false);
-    ak47.animator.AddAnimation("RELOAD", &resourceManager->texAk47Reload,
-                               {96, 48}, 20, reloadFramePos, false);
+    mp5->animator.AddAnimation("SHOOT", &resourceManager->texMp5Shoot, {80, 48},
+                               42, shootFramePos, false);
+    mp5->animator.AddAnimation("RELOAD", &resourceManager->texMp5Reload,
+                               {80, 48}, 24, reloadFramePos, false);
 
-    ak47.animator.SetState("IDLE");
-    arsenal.push_back(ak47);
+    mp5->animator.SetState("IDLE");
+
+    arsenal.push_back(std::make_unique<Weapon>());
+    Weapon *ak47 = arsenal.back().get();
+    ak47->name = "Ak-47";
+    ak47->type = WeaponType::ASSAULT_RIFLE;
+    ak47->width = 60;
+    ak47->height = 36;
+    ak47->maxAmmo = 31;
+    ak47->currentAmmo = ak47->maxAmmo;
+    ak47->damage = 8;
+    ak47->spread = 1.5f;
+    ak47->isUnlocked = false;
+    ak47->reloadTime = 1.5f;
+    ak47->fireCooldown = 0.15f;
+    ak47->upgradeCost = 200;
+    ak47->unlockCost = 1500;
+    ak47->currentLevel = 1;
+    ak47->maxLevel = 10;
+    ak47->barrelOffest = {18, -10};
+    shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
+                     {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
+    reloadFramePos = {{0, 0},  {1, 0},  {2, 0},  {3, 0}, {4, 0},  {5, 0},
+                      {6, 0},  {7, 0},  {8, 0},  {9, 0}, {10, 0}, {11, 0},
+                      {12, 0}, {13, 0}, {14, 0}, {15, 0}};
+
+    // std::reverse(reloadFramePos.begin(), reloadFramePos.end());
+
+    ak47->animator.AddAnimation("IDLE", &resourceManager->texAk47Shoot,
+                                {96, 48}, 0, {{0, 0}}, false);
+    ak47->animator.AddAnimation("SHOOT", &resourceManager->texAk47Shoot,
+                                {96, 48}, 42, shootFramePos, false);
+    ak47->animator.AddAnimation("RELOAD", &resourceManager->texAk47Reload,
+                                {96, 48}, 20, reloadFramePos, false);
+
+    ak47->animator.SetState("IDLE");
 
     currentWeaponIndex = 0;
 }
 
-Weapon *Player::GetActiveWeapon() { return &arsenal[currentWeaponIndex]; }
+Weapon *Player::GetActiveWeapon() { return arsenal[currentWeaponIndex].get(); }
 
 void Player::UpdateWeapon(float dt, Vector2 mousePos,
                           BulletManager *bulletManager) {
@@ -281,7 +282,6 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
 
     if (wp->state == WeaponState::RELOADING) {
         if (wp->animator.IsAnimationFinished()) {
-            printf("kunic ladowania\n");
             wp->currentAmmo = wp->maxAmmo;
             wp->state = WeaponState::IDLE;
             wp->animator.SetState("IDLE");
@@ -312,7 +312,8 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
                         barrelEnd, Vector2Scale(finalDirection, 1000));
 
                     bulletManager->Shoot(barrelEnd, bulletTarget, wp->damage,
-                                         BulletType::BULLET, 800, randomOffset, false);
+                                         BulletType::BULLET, 800, randomOffset,
+                                         false);
                 }
 
                 wp->currentAmmo--;
@@ -332,4 +333,24 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
             }
         }
     }
+}
+
+void Player::EquipWeapon(WeaponType type) {
+    for (int i = 0; i < arsenal.size(); ++i) {
+        if (arsenal[i]->type == type) {
+            currentWeaponIndex = i;
+            printf("znalezione tej\n");
+            GetActiveWeapon()->animator.SetState("IDLE");
+            break;
+        }
+    }
+}
+
+Weapon *Player::GetWeapon(WeaponType type) {
+    for (int i = 0; i < arsenal.size(); ++i) {
+        if (arsenal[i]->type == type)
+            return arsenal[i].get();
+    }
+
+    return nullptr;
 }

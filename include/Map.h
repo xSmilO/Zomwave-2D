@@ -16,6 +16,7 @@ class Map {
 
     void DrawLayer(const ldtk::Layer& layer);
   public:
+    std::vector<Vector2> validSpawnPoints = {};
     Map();
     ~Map();
     Vector2 GetSpawnPoint();

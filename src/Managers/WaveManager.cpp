@@ -1,14 +1,25 @@
 #include "Managers/WaveManager.h"
-#include <cmath>
+#include "raymath.h"
 
 bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
-    for (int i = 0; i < 10; i++) {
-        float randomAngle = GetRandomValue(0, 360) * DEG2RAD;
-        float spawnRadius = GetRandomValue(300, 600);
+    if (map->validSpawnPoints.empty())
+        return false;
 
-        Vector2 testPos = {playerPos.x + (float)cos(randomAngle) * spawnRadius,
-                           playerPos.y + (float)sin(randomAngle) * spawnRadius};
-        enemy->position = testPos;
+    float minRadius = 300.0f;
+    float maxRadius = 600.0f;
+
+    std::vector<Vector2> candidates;
+    for (const auto &spawnPos : map->validSpawnPoints) {
+        float distance = Vector2Distance(playerPos, spawnPos);
+        if (distance >= minRadius && distance <= maxRadius) {
+            candidates.push_back(spawnPos);
+        }
+    }
+
+
+    if (!candidates.empty()) {
+        int randomIndex = GetRandomValue(0, candidates.size() - 1);
+        enemy->position = candidates[randomIndex];
 
         if (map->CheckHitbox(enemy->GetHitbox()) == false) {
             return true;
@@ -32,6 +43,8 @@ void WaveManager::Update(float dt, EnemyManager *enemyManager,
 
     if (currentSpawnInterval < 0.15f)
         currentSpawnInterval = 0.15f;
+
+    currentSpawnInterval = 0.5f;
 
     spawnTimer += dt;
     if (spawnTimer >= currentSpawnInterval) {

@@ -4,7 +4,7 @@
 #include "raylib.h"
 
 Map::Map() {
-    project.loadFromFile("../assets/level_0.ldtk");
+    project.loadFromFile("../assets/dungeon_map.ldtk");
     currentLevel = &project.getWorld().getLevel("Level_0");
     mapSize = {(float)currentLevel->size.x, (float)currentLevel->size.y};
 
@@ -22,6 +22,13 @@ Map::Map() {
             collisionLayer = &layer;
             tileSize = layer.getCellSize();
         }
+    }
+
+    // load valid spawns
+    validSpawnPoints = {};
+    for (auto &tile :
+         currentLevel->getLayer("ValidSpawn").getIntGridValPositions(1)) {
+        validSpawnPoints.push_back({(float)tile.x * tileSize, (float)tile.y * tileSize});
     }
 }
 
