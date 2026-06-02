@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <cmath>
+#include <raygui.h>
 
 Game::Game() {
 #if defined(PLATFORM_WEB)
@@ -16,7 +17,7 @@ Game::Game() {
     SetTargetFPS(
         144); // do not set fps when used in browser for better web performance
 #endif
-
+    currentState = GameState::MAIN_MENU;
     screenWidth = 1920;
     screenHeight = 1080;
     camera.offset = {virtualWidth / 2.0f, virtualHeight / 2.0f};
@@ -24,6 +25,7 @@ Game::Game() {
     camera.zoom = 1.0f;
 
     InitWindow(screenWidth, screenHeight, "Zomwave 2D");
+    SetExitKey(KEY_NULL);
 
     resources = new ResourceManager();
     resources->LoadAll();
@@ -69,25 +71,24 @@ void Game::Draw() {
     int padding = 30; // set padding to avoid scrollbar and browser edge overlap
     SetWindowSize(getBrowserWidth() - padding, getBrowserHeight() - padding);
 #endif
-    BeginTextureMode(target);
-    ClearBackground(RAYWHITE);
 
-    DrawTexture(resources->texSkyBox, 0, 0, WHITE);
+    switch (currentState) {
+    case GameState::MAIN_MENU:
+        DrawMainMenu();
+        break;
+    case GameState::PLAYING:
+        DrawPlaying();
+        break;
+    case GameState::SETTINGS:
+        DrawSettings();
+        break;
+    case GameState::PAUSED:
+        DrawPaused();
+        break;
+    case GameState::EXIT:
+        break;
+    }
 
-    BeginMode2D(camera);
-
-    levelMap->DrawBackground();
-    pickupManager->Draw();
-    enemyManager->Draw();
-    player->Draw();
-    levelMap->DrawForeground();
-    bulletManager->Draw();
-
-    EndMode2D();
-
-    uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
-
-    shopManager.DrawShop(player, resources);
     EndTextureMode();
 
     BeginDrawing();
@@ -95,7 +96,6 @@ void Game::Draw() {
 
     float scale = fminf((float)GetScreenWidth() / virtualWidth,
                         (float)GetScreenHeight() / virtualHeight);
-
     Rectangle source = {0.0f, 0.0f, (float)target.texture.width,
                         (float)-target.texture.height};
 
@@ -118,6 +118,52 @@ void Game::Update() {
     SetMouseScale(1.0f / scale, 1.0f / scale);
 
     float dt = GetFrameTime();
+
+    BeginTextureMode(target);
+    ClearBackground(RAYWHITE);
+
+    switch (currentState) {
+    case GameState::MAIN_MENU:
+        UpdateMainMenu(dt);
+        break;
+    case GameState::PLAYING:
+        UpdatePlaying(dt);
+        break;
+    case GameState::SETTINGS:
+        UpdateSettings(dt);
+        break;
+    case GameState::PAUSED:
+        UpdatePaused(dt);
+    case GameState::EXIT:
+        // CloseWindow();
+        break;
+    }
+}
+
+// method used to call all game logic
+void Game::MainLoopHelper(void *userData) {
+    Game *game = static_cast<Game *>(userData);
+    game->Update();
+    game->Draw();
+}
+
+// used to run game loop logic
+void Game::Run() {
+#if defined(PLATFORM_WEB)
+    emscripten_set_main_loop_arg(MainLoopHelper, this, 0, 1);
+#else
+    while (!WindowShouldClose() && currentState != GameState::EXIT) {
+        MainLoopHelper(this);
+    }
+#endif
+}
+
+void Game::UpdateMainMenu(float dt) {}
+
+void Game::UpdatePlaying(float dt) {
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        currentState = GameState::PAUSED;
+    }
 
     if (IsKeyPressed(KEY_B)) {
         shopManager.isOpen = !shopManager.isOpen;
@@ -155,22 +201,124 @@ void Game::Update() {
     mousePosition = GetScreenToWorld2D(mousePosition, camera);
 }
 
-// method used to call all game logic
-void Game::MainLoopHelper(void *userData) {
-    Game *game = static_cast<Game *>(userData);
-    game->Update();
-    game->Draw();
+void Game::UpdateSettings(float dt) {}
+
+void Game::UpdatePaused(float dt) {
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        currentState = GameState::PLAYING;
+    }
 }
 
-// used to run game loop logic
-void Game::Run() {
-#if defined(PLATFORM_WEB)
-    emscripten_set_main_loop_arg(MainLoopHelper, this, 0, 1);
-#else
-    while (!WindowShouldClose()) {
-        MainLoopHelper(this);
+void Game::DrawMainMenu() {
+    DrawTexturePro(resources->texSkyBox,
+                   {0, 0, (float)resources->texSkyBox.width,
+                    (float)resources->texSkyBox.height},
+                   {0, 0, (float)virtualWidth, (float)virtualHeight}, {0, 0}, 0,
+                   WHITE);
+
+    float btnWidth = 200.0f;
+    float btnHeight = 50.0f;
+    float spacing = 20.0f; // Odstęp między przyciskami
+
+    // Obliczamy idealny środek ekranu wirtualnego
+    float centerX = virtualWidth / 2.0f;
+    float btnX = centerX - (btnWidth / 2.0f);
+    float startY = virtualHeight / 2.0f -
+                   50.0f; // Zaczynamy rysować trochę nad środkiem ekranu
+
+    // 3. TYTUŁ GRY
+    const char *title = "Zomwave 2D";
+    int titleSize = 60;
+    // Funkcja MeasureText pozwala wyliczyć długość tekstu, żeby idealnie go
+    // wyśrodkować!
+    int titleWidth = MeasureText(title, titleSize);
+    DrawText(title, centerX - (titleWidth / 2), 100, titleSize, MAROON);
+
+    // 4. PRZYCISKI RAYGUI
+    // Z każdym przyciskiem dodajemy 'btnHeight + spacing' do osi Y, żeby je
+    // ułożyć w kolumnie
+
+    if (GuiButton({btnX, startY, btnWidth, btnHeight}, "GRAJ")) {
+        // Tu zmieniamy stan na grę!
+        currentState = GameState::PLAYING;
     }
-#endif
+    if (GuiButton({btnX, startY + (btnHeight + spacing), btnWidth, btnHeight},
+                  "USTAWIENIA")) {
+        currentState = GameState::SETTINGS;
+    }
+
+    if (GuiButton(
+            {btnX, startY + (btnHeight + spacing) * 2, btnWidth, btnHeight},
+            "WYJDZ")) {
+        currentState = GameState::EXIT;
+    }
+}
+
+void Game::DrawPlaying() {
+    DrawTexture(resources->texSkyBox, 0, 0, WHITE);
+
+    BeginMode2D(camera);
+    levelMap->DrawBackground();
+    pickupManager->Draw();
+    enemyManager->Draw();
+    player->Draw();
+    levelMap->DrawForeground();
+    bulletManager->Draw();
+
+    EndMode2D();
+
+    uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
+
+    shopManager.DrawShop(player, resources);
+}
+
+void Game::DrawSettings() {
+    DrawRectangle(0, 0, virtualWidth, virtualHeight, {20, 20, 20, 255});
+
+    float centerX = virtualWidth / 2.0f;
+    float btnWidth = 300.0f;
+    float btnX = centerX - (btnWidth / 2.0f);
+
+    const char *title = "USTAWIENIA";
+    int titleWidth = MeasureText(title, 50);
+    DrawText(title, centerX - (titleWidth / 2.0f), 100, 50, LIGHTGRAY);
+
+    const char *volText =
+        TextFormat("GLOSNOSC: %i%%", (int)(masterVolume * 100));
+    int volTextWidth = MeasureText(volText, 30);
+    DrawText(volText, centerX - (volTextWidth / 2.0f), 220, 30, GRAY);
+
+    GuiSlider({btnX, 270, btnWidth, 40}, "0%", "100%", &masterVolume, 0.0f,
+              1.0f);
+
+    SetMasterVolume(masterVolume);
+
+    // 5. PRZYCISK POWROTU
+    if (GuiButton({centerX - 100.0f, virtualHeight - 100.0f, 200, 50},
+                  "WROC DO MENU")) {
+        currentState = GameState::MAIN_MENU;
+    }
+}
+
+void Game::DrawPaused() {
+    DrawPlaying();
+
+    DrawRectangle(0, 0, virtualWidth, virtualHeight, {0, 0, 0, 150});
+
+    int screenWidth = virtualWidth;
+    float btnWidth = 200.0f;
+    float btnX = screenWidth / 2.0f - (btnWidth / 2.0f);
+
+    DrawText("PAUZA", screenWidth / 2 - MeasureText("PAUZA", 60) / 2, 50, 60,
+             LIGHTGRAY);
+
+    if (GuiButton({btnX, 170, btnWidth, 50}, "WROC DO GRY")) {
+        currentState = GameState::PLAYING;
+    }
+
+    if (GuiButton({btnX, 250, btnWidth, 50}, "MENU GLOWNE")) {
+        currentState = GameState::MAIN_MENU;
+    }
 }
 
 void Game::SpawnPlayer() { player->SetPosition(levelMap->GetSpawnPoint()); }

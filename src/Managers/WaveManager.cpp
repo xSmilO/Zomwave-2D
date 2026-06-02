@@ -44,8 +44,6 @@ void WaveManager::Update(float dt, EnemyManager *enemyManager,
     if (currentSpawnInterval < 0.15f)
         currentSpawnInterval = 0.15f;
 
-    currentSpawnInterval = 0.5f;
-
     spawnTimer += dt;
     if (spawnTimer >= currentSpawnInterval) {
         std::unique_ptr<Enemy> newEnemy = nullptr;
