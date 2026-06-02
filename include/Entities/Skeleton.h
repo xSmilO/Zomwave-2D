@@ -7,7 +7,6 @@
 #include "raylib.h"
 class Skeleton : public Enemy {
   private:
-    Vector2 position;
     float speed = 80.0f;
     float fireRate = 2.0f;
     float fireTimer = 0.0f;

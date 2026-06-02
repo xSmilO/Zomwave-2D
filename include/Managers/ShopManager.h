@@ -37,6 +37,6 @@ class ShopManager {
 
     bool isOpen = false;
 
-    void DrawShop(Player *player, ResourceManager* resourceManager);
+    void DrawShop(Player *player, ResourceManager* resourceManager, AudioManager* audioManager);
     void ApplyUpgrade(Player *player, Upgrade &upgrade);
 };

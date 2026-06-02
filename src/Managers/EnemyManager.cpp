@@ -71,7 +71,6 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
             float minDistance = 30.0f;
 
             if (distance < minDistance && distance > 0.01f) {
-                printf("pchanie\n");
                 float overlap = minDistance - distance;
 
                 Vector2 direction = Vector2Normalize(diff);
@@ -101,6 +100,7 @@ std::unique_ptr<Enemy> EnemyManager::CreateZombie() {
 }
 
 std::unique_ptr<Enemy> EnemyManager::CreateSkeleton() {
+    printf("szkielet tej \n");
     return std::make_unique<Skeleton>(&resources->texSkeleton,
                                       &resources->texBow, Vector2{0, 0},
                                       bulletManager);

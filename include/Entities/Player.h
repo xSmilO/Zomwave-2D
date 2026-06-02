@@ -1,5 +1,6 @@
 #pragma once
 #include "Animator.h"
+#include "Managers/AudioManager.h"
 #include "Managers/BulletManager.h"
 #include "Managers/ResourceManager.h"
 #include "Map.h"
@@ -23,6 +24,7 @@ class Player {
     int currentWeaponIndex;
     float shootTimer;
     ResourceManager *resourceManager;
+    AudioManager *audioManager;
 
     void CalculateWeaponPos(Vector2 mousePosition);
     void InitializeArsenal();
@@ -35,7 +37,7 @@ class Player {
     int coins;
     int potions;
 
-    Player(ResourceManager *resourceManager);
+    Player(ResourceManager *resourceManager, AudioManager *audioManager);
     void Update(float dt, Vector2 mousePosition, Map *map,
                 BulletManager *bulletManager);
     void Draw();

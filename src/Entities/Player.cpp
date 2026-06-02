@@ -8,8 +8,9 @@
 #include <algorithm>
 #include <cmath>
 
-Player::Player(ResourceManager *resourceManager) {
+Player::Player(ResourceManager *resourceManager, AudioManager *audioManager) {
     this->resourceManager = resourceManager;
+    this->audioManager = audioManager;
     position = {0.0f, 0.0f};
     currentWeaponIndex = 0;
 
@@ -71,6 +72,7 @@ void Player::Update(float dt, Vector2 mousePosition, Map *map,
     if (IsKeyPressed(KEY_E) && potions > 0 && health < maxHealth) {
         potions--;
         health += 30;
+        audioManager->PlayPotionUse();
 
         if (health > maxHealth) {
             health = maxHealth;
@@ -162,21 +164,21 @@ void Player::InitializeArsenal() {
     std::vector<Vector2> shootFramePos = {};
     std::vector<Vector2> reloadFramePos = {};
     arsenal.push_back(std::make_unique<Weapon>());
-    Weapon *pistol = arsenal.back().get();
-    pistol->name = "Glock-18";
-    pistol->type = WeaponType::PISTOL;
-    pistol->width = 40;
-    pistol->height = 32;
-    pistol->maxAmmo = 12;
-    pistol->currentAmmo = pistol->maxAmmo;
-    pistol->damage = 10;
-    pistol->isUnlocked = true;
-    pistol->reloadTime = 1.5f;
-    pistol->fireCooldown = 0.45f;
-    pistol->upgradeCost = 50;
-    pistol->currentLevel = 1;
-    pistol->maxLevel = 5;
-    pistol->barrelOffest = {15, -8};
+    Weapon *glock = arsenal.back().get();
+    glock->name = "Glock-18";
+    glock->type = WeaponType::GLOCK;
+    glock->width = 40;
+    glock->height = 32;
+    glock->maxAmmo = 12;
+    glock->currentAmmo = glock->maxAmmo;
+    glock->damage = 10;
+    glock->isUnlocked = true;
+    glock->reloadTime = 1.5f;
+    glock->fireCooldown = 0.45f;
+    glock->upgradeCost = 50;
+    glock->currentLevel = 1;
+    glock->maxLevel = 5;
+    glock->barrelOffest = {15, -8};
 
     shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
                      {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
@@ -186,19 +188,19 @@ void Player::InitializeArsenal() {
 
     std::reverse(reloadFramePos.begin(), reloadFramePos.end());
 
-    pistol->animator.AddAnimation("IDLE", &resourceManager->texPistolShoot,
+    glock->animator.AddAnimation("IDLE", &resourceManager->texGlockShoot,
                                   {64, 48}, 0, {{0, 0}}, false);
-    pistol->animator.AddAnimation("SHOOT", &resourceManager->texPistolShoot,
+    glock->animator.AddAnimation("SHOOT", &resourceManager->texGlockShoot,
                                   {64, 48}, 42, shootFramePos, false);
-    pistol->animator.AddAnimation("RELOAD", &resourceManager->texPistolReload,
+    glock->animator.AddAnimation("RELOAD", &resourceManager->texGlockReload,
                                   {64, 48}, 24, reloadFramePos, false);
 
-    pistol->animator.SetState("IDLE");
+    glock->animator.SetState("IDLE");
 
     arsenal.push_back(std::make_unique<Weapon>());
     Weapon *mp5 = arsenal.back().get();
     mp5->name = "Mp5";
-    mp5->type = WeaponType::SMG;
+    mp5->type = WeaponType::MP5;
     mp5->width = 50;
     mp5->height = 34;
     mp5->maxAmmo = 25;
@@ -231,7 +233,7 @@ void Player::InitializeArsenal() {
     arsenal.push_back(std::make_unique<Weapon>());
     Weapon *ak47 = arsenal.back().get();
     ak47->name = "Ak-47";
-    ak47->type = WeaponType::ASSAULT_RIFLE;
+    ak47->type = WeaponType::AK47;
     ak47->width = 60;
     ak47->height = 36;
     ak47->maxAmmo = 31;
@@ -291,6 +293,7 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
             wp->state = WeaponState::RELOADING;
             wp->animator.SetState("RELOAD");
             wp->animator.ResetAnimation();
+            audioManager->PlayReload(wp->type);
         } else if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && shootTimer <= 0.0f) {
             if (wp->currentAmmo > 0) {
                 float angleRad = weaponRotation * (PI / 180.0f);
@@ -321,10 +324,13 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
                 wp->state = WeaponState::SHOOTING;
                 wp->animator.SetState("SHOOT");
                 wp->animator.ResetAnimation();
+
+                audioManager->PlayShoot(wp->type);
             } else {
                 wp->state = WeaponState::RELOADING;
                 wp->animator.SetState("RELOAD");
                 wp->animator.ResetAnimation();
+                audioManager->PlayReload(wp->type);
             }
         } else if (wp->state == WeaponState::SHOOTING) {
             if (wp->animator.IsAnimationFinished()) {
@@ -336,10 +342,9 @@ void Player::UpdateWeapon(float dt, Vector2 mousePos,
 }
 
 void Player::EquipWeapon(WeaponType type) {
-    for (int i = 0; i < arsenal.size(); ++i) {
+    for (size_t i = 0; i < arsenal.size(); ++i) {
         if (arsenal[i]->type == type) {
             currentWeaponIndex = i;
-            printf("znalezione tej\n");
             GetActiveWeapon()->animator.SetState("IDLE");
             break;
         }
@@ -347,7 +352,7 @@ void Player::EquipWeapon(WeaponType type) {
 }
 
 Weapon *Player::GetWeapon(WeaponType type) {
-    for (int i = 0; i < arsenal.size(); ++i) {
+    for (size_t i = 0; i < arsenal.size(); ++i) {
         if (arsenal[i]->type == type)
             return arsenal[i].get();
     }

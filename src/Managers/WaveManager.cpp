@@ -16,8 +16,15 @@ bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
         }
     }
 
+    Rectangle hit = enemy->GetHitbox();
 
-    if (!candidates.empty()) {
+    printf("%f, %f, %f, %f", hit.width, hit.height, hit.x, hit.y);
+
+    if (candidates.empty()) {
+        return false;
+    }
+    int maxAttempts = 10;
+    for (int i = 0; i < maxAttempts; i++) {
         int randomIndex = GetRandomValue(0, candidates.size() - 1);
         enemy->position = candidates[randomIndex];
 
@@ -25,7 +32,6 @@ bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
             return true;
         }
     }
-
     return false;
 }
 
