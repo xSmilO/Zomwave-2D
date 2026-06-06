@@ -1,16 +1,18 @@
 #include "Entities/Skeleton.h"
+#include "Weapon.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <cmath>
 
 Skeleton::Skeleton(Texture2D *texCharacter, Texture2D *texBow, Vector2 startPos,
-                   BulletManager *bm) {
+                   BulletManager *bm, AudioManager *am) {
+    audioManager = am;
     bulletManager = bm;
     position = startPos;
     width = 20.0f;
     height = 20.0f;
-    maxHealth = health;
     health = 80.0f;
+    maxHealth = health;
 
     std::vector<Vector2> walkFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0},
                                          {4, 0}, {5, 0}, {6, 0}};
@@ -108,6 +110,7 @@ void Skeleton::Update(float dt, Vector2 playerPos, Map *map) {
 
     if (distance <= attackRange && fireTimer <= 0.0f && bowAnimator.GetState() != "shoot") {
         bowAnimator.SetState("shoot");
+        audioManager->PlayShoot(WeaponType::BOW);
         bowAnimator.ResetAnimation();
     }
 }

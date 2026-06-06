@@ -1,4 +1,5 @@
 #include "Managers/ShopManager.h"
+#include "Managers/AudioManager.h"
 #include "Managers/ResourceManager.h"
 #include "raylib.h"
 #include <raygui.h>
@@ -26,7 +27,7 @@ void ShopManager::ApplyUpgrade(Player *player, Upgrade &upgrade) {
     }
 }
 
-void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
+void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager, AudioManager* audioManager) {
     if (!isOpen)
         return;
 
@@ -53,7 +54,6 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
     // ZAKŁADKA 0: BRONIE
     // =========================================================
     if (currentTab == 0) {
-
         float scrollY = headerY + 40.0f;
         float scrollWidth = windowBounds.width - (padding * 2);
         float scrollHeight =
@@ -61,10 +61,6 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
 
         Rectangle panelBounds = {startX, scrollY, scrollWidth, scrollHeight};
 
-        // --- ZMIANA NA SCROLL POZIOMY ---
-        // Szerokość to np. 1000 pikseli, a wysokość odejmujemy o 20px,
-        // żeby zrobić miejsce na sam pasek scrollbara na dole i uniknąć
-        // pionowego scrolla!
         Rectangle contentBounds = {startX, scrollY, 1000, scrollHeight - 20};
         Rectangle view = {0};
 
@@ -74,26 +70,22 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
                          (int)view.height);
 
         float tileWidth = 200.0f;
-        float tileHeight =
-            contentBounds.height -
-            20.0f; // Rozciągnięte na prawie całą wysokość scrolla
+        float tileHeight = contentBounds.height - 20.0f;
         float startTileX = contentBounds.x + 10.0f;
-        float tileY = contentBounds.y + 10.0f; // Y jest teraz stałe!
-        float spacing = tileWidth + 20.0f;     // Odstęp w poziomie
+        float tileY = contentBounds.y + 10.0f;
+        float spacing = tileWidth + 20.0f;
 
-        WeaponType types[4] = {WeaponType::PISTOL, WeaponType::SMG,
-                               WeaponType::ASSAULT_RIFLE,
-                               WeaponType::ASSAULT_RIFLE};
+        WeaponType types[4] = {WeaponType::GLOCK, WeaponType::MP5,
+                               WeaponType::AK47, WeaponType::AK47};
         std::string names[4] = {"Pistolet", "MP5", "AK-47", "Shotgun"};
         Texture2D textures[4] = {
-            resourceManager->texPistolShoot, resourceManager->texMp5Shoot,
+            resourceManager->texGlockShoot, resourceManager->texMp5Shoot,
             resourceManager->texAk47Shoot, resourceManager->texAk47Shoot};
         Rectangle texSource[4] = {
             {18, 0, 30, 36}, {0, 0, 64, 36}, {0, 0, 80, 36}, {0, 0, 20, 20}};
 
         for (int i = 0; i < 4; i++) {
 
-            // MAGIA HORYZONTALNA: Używamy scrollOffset.x i zmieniamy currentX!
             float currentX = startTileX + (i * spacing) + scrollOffset.x;
             Rectangle tileRec = {currentX, tileY, tileWidth, tileHeight};
 
@@ -105,7 +97,6 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
                                                 weapon->currentLevel));
                 if (weapon != nullptr) {
 
-                    // --- CENTROWANIE TEKSTURY (Większa i wyżej) ---
                     float texScale = 2.0f;
                     float texW = texSource[i].width * texScale;
                     float texH = texSource[i].height * texScale;
@@ -115,17 +106,15 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
                                       tileY + 40, texW, texH};
 
                     Color drawColor = weapon->isUnlocked ? WHITE : DARKGRAY;
-                    // DrawRectangle(dest.x, dest.y, texW, texH, RED);
+
                     DrawTexturePro(textures[i], texSource[i], dest, {0, 0},
                                    0.0f, drawColor);
 
-                    // --- PRZYCISKI (Ułożone pionowo na dole karty) ---
-                    float btnWidth =
-                        tileWidth - 20.0f; // Szerokość dopasowana do karty
-                    float btnX = currentX + 10.0f; // Wyśrodkowane w karcie
+                    float btnWidth = tileWidth - 20.0f;
+                    float btnX = currentX + 10.0f;
 
                     if (!weapon->isUnlocked) {
-                        // Przycisk ZAKUPU na samym dole
+
                         Rectangle btnBuy = {btnX, tileY + tileHeight - 50,
                                             btnWidth, 40};
                         if (CheckCollisionRecs(btnBuy, view)) {
@@ -136,24 +125,25 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
                                     player->coins -= weapon->unlockCost;
                                     weapon->isUnlocked = true;
                                 }
+                                audioManager->PlayBuy();
                             }
                         }
                     } else {
-                        // Przyciski WEŹ i ULEPSZ jeden pod drugim!
+
                         Rectangle btnEquip = {btnX, tileY + tileHeight - 100,
                                               btnWidth, 40};
                         Rectangle btnUpgrade = {btnX, tileY + tileHeight - 50,
                                                 btnWidth, 40};
 
                         if (CheckCollisionRecs(btnEquip, view)) {
-                            // Możemy zmienić kolor/tekst, jeśli to aktualnie
-                            // trzymana broń
+
                             bool isEquipped =
                                 (player->GetActiveWeapon()->type == types[i]);
                             const char *equipText =
                                 isEquipped ? "W REKU" : "WEZ DO REKI";
 
                             if (GuiButton(btnEquip, equipText) && !isEquipped) {
+                                audioManager->PlayUIClick();
                                 player->EquipWeapon(types[i]);
                             }
                         }
@@ -167,6 +157,7 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
                                                      weapon->upgradeCost)) &&
                                 !maxLvl) {
                                 if (player->coins >= weapon->upgradeCost) {
+                                    audioManager->PlayBuy();
                                     player->coins -= weapon->upgradeCost;
                                     weapon->damage += 2;
                                     weapon->currentLevel++;
@@ -183,7 +174,6 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
     // ZAKŁADKA 1: POSTAĆ I PRZEDMIOTY
     // =========================================================
     else if (currentTab == 1) {
-
         // POTKA: Leczenie
         if (GuiButton({120, 140, 300, 40},
                       TextFormat("Kup Miksture [$%d]", potionCost))) {
@@ -195,19 +185,16 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager) {
             }
         }
 
-        // ULEPSZENIE: Max HP
         if (GuiButton({120, 190, 300, 40},
                       TextFormat("Ulepsz Max HP (+20) [$350] (Aktualne: %d)",
                                  player->maxHealth))) {
             if (player->coins >= 350) {
                 player->coins -= 150;
                 player->maxHealth += 20;
-                player->health += 20; // Dajemy graczowi to HP od razu, żeby nie
-                                      // czuł się oszukany
+                player->health += 20;
             }
         }
 
-        // ULEPSZENIE: Movement Speed
         if (GuiButton(
                 {120, 240, 300, 40},
                 TextFormat("Lepsze Buty (Szybkosc +10) [$200] (Akt: %.0f)",

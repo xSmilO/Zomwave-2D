@@ -1,5 +1,6 @@
 #pragma once
 #include "Animator.h"
+#include "Managers/AudioManager.h"
 #include "Managers/BulletManager.h"
 #include "Managers/ResourceManager.h"
 #include "Map.h"
@@ -22,7 +23,10 @@ class Player {
     std::vector<std::unique_ptr<Weapon>> arsenal;
     int currentWeaponIndex;
     float shootTimer;
+    float stepTimer;
+    float timeBetweenSteps;
     ResourceManager *resourceManager;
+    AudioManager *audioManager;
 
     void CalculateWeaponPos(Vector2 mousePosition);
     void InitializeArsenal();
@@ -34,8 +38,9 @@ class Player {
     float invincibilityTimer;
     int coins;
     int potions;
+    bool isAlive;
 
-    Player(ResourceManager *resourceManager);
+    Player(ResourceManager *resourceManager, AudioManager *audioManager);
     void Update(float dt, Vector2 mousePosition, Map *map,
                 BulletManager *bulletManager);
     void Draw();

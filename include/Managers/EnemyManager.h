@@ -11,10 +11,11 @@
 class EnemyManager {
   private:
     ResourceManager *resources;
-    BulletManager* bulletManager;
+    BulletManager *bulletManager;
+    AudioManager *audioManager;
 
   public:
-    EnemyManager(ResourceManager *resources, BulletManager* bm);
+    EnemyManager(ResourceManager *rm, BulletManager *bm, AudioManager *am);
 
     std::vector<std::unique_ptr<Enemy>> enemies;
 
@@ -24,7 +25,7 @@ class EnemyManager {
     void AddEnemy(std::unique_ptr<Enemy> enemy);
 
     void Update(float dt, Player *player, Map *map,
-                BulletManager *bulletManager, PickupManager* pickupManager);
+                BulletManager *bulletManager, PickupManager *pickupManager);
     void Draw();
 
     std::unique_ptr<Enemy> CreateZombie();

@@ -3,7 +3,7 @@
 #include "Animator.h"
 #include "raylib.h"
 #include <string>
-enum class WeaponType { PISTOL, SHOTGUN, ASSAULT_RIFLE, SMG };
+enum class WeaponType { GLOCK, SHOTGUN, AK47, MP5, BOW };
 
 enum class WeaponState { IDLE, SHOOTING, RELOADING };
 

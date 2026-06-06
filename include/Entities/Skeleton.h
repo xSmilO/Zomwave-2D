@@ -2,12 +2,12 @@
 
 #include "Animator.h"
 #include "Entities/Enemy.h"
+#include "Managers/AudioManager.h"
 #include "Managers/BulletManager.h"
 #include "Map.h"
 #include "raylib.h"
 class Skeleton : public Enemy {
   private:
-    Vector2 position;
     float speed = 80.0f;
     float fireRate = 2.0f;
     float fireTimer = 0.0f;
@@ -25,7 +25,8 @@ class Skeleton : public Enemy {
     BulletManager *bulletManager;
 
   public:
-    Skeleton(Texture2D *texCharacter, Texture2D* texBow, Vector2 startPos, BulletManager *bm);
+    Skeleton(Texture2D *texCharacter, Texture2D *texBow, Vector2 startPos,
+             BulletManager *bm, AudioManager *am);
 
     void CalculateBowPos(Vector2 targetPos);
 

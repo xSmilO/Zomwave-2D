@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Managers/BulletManager.h"
+#include "Managers/ConfigManager.h"
 #include "Managers/EnemyManager.h"
 #include "Managers/UIManager.h"
 #include "Managers/WaveManager.h"
@@ -17,6 +18,7 @@ Game::Game() {
     SetTargetFPS(
         144); // do not set fps when used in browser for better web performance
 #endif
+    previousState = GameState::MAIN_MENU;
     currentState = GameState::MAIN_MENU;
     screenWidth = 1920;
     screenHeight = 1080;
@@ -25,10 +27,13 @@ Game::Game() {
     camera.zoom = 1.0f;
 
     InitWindow(screenWidth, screenHeight, "Zomwave 2D");
+    InitAudioDevice();
     SetExitKey(KEY_NULL);
 
     resources = new ResourceManager();
     resources->LoadAll();
+
+    audioManager.Init(resources);
 
     pickupManager =
         new PickupManager(&resources->texHealthPotion, &resources->texCoin);
@@ -37,20 +42,18 @@ Game::Game() {
 
     bulletManager =
         new BulletManager(&resources->texBullet, &resources->texArrow);
-    enemyManager = new EnemyManager(resources, bulletManager);
+    enemyManager = new EnemyManager(resources, bulletManager, &audioManager);
     waveManager = new WaveManager();
 
     target = LoadRenderTexture(virtualWidth, virtualHeight);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
     levelMap = new Map();
-    player = new Player(resources);
+    player = new Player(resources, &audioManager);
 
     SpawnPlayer();
-    // enemyManager.SpawnEnemy({200.0f, 200.0f});
-    // enemyManager.SpawnEnemy({400.0f, 150.0f});
-    // enemyManager->SpawnZombie({704.0f, 600.0f});
-    // enemyManager->SpawnSkeleton({500.0f, 350.0f});
+    ConfigManager::LoadSettings(audioManager, currentFpsIndex, fpsOptions);
+    audioManager.PlayMenuMusic();
 }
 
 Game::~Game() {
@@ -62,6 +65,7 @@ Game::~Game() {
     delete player;
     delete levelMap;
     UnloadRenderTexture(target);
+    audioManager.CleanUp();
     CloseWindow();
 }
 
@@ -119,6 +123,8 @@ void Game::Update() {
 
     float dt = GetFrameTime();
 
+    audioManager.UpdateMusic();
+
     BeginTextureMode(target);
     ClearBackground(RAYWHITE);
 
@@ -134,6 +140,7 @@ void Game::Update() {
         break;
     case GameState::PAUSED:
         UpdatePaused(dt);
+        break;
     case GameState::EXIT:
         // CloseWindow();
         break;
@@ -163,6 +170,7 @@ void Game::UpdateMainMenu(float dt) {}
 void Game::UpdatePlaying(float dt) {
     if (IsKeyPressed(KEY_ESCAPE)) {
         currentState = GameState::PAUSED;
+        audioManager.PauseMusic();
     }
 
     if (IsKeyPressed(KEY_B)) {
@@ -171,13 +179,14 @@ void Game::UpdatePlaying(float dt) {
 
     if (shopManager.isOpen) {
         dt = 0.0f;
+        return;
     }
 
     bulletManager->Update(dt, levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
     waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
     enemyManager->Update(dt, player, levelMap, bulletManager, pickupManager);
-    pickupManager->Update(dt, player);
+    pickupManager->Update(dt, player, &audioManager);
 
     for (auto &bullet : bulletManager->bullets) {
         if (!bullet.active)
@@ -206,6 +215,7 @@ void Game::UpdateSettings(float dt) {}
 void Game::UpdatePaused(float dt) {
     if (IsKeyPressed(KEY_ESCAPE)) {
         currentState = GameState::PLAYING;
+        audioManager.ResumeMusic();
     }
 }
 
@@ -218,44 +228,43 @@ void Game::DrawMainMenu() {
 
     float btnWidth = 200.0f;
     float btnHeight = 50.0f;
-    float spacing = 20.0f; // Odstęp między przyciskami
+    float spacing = 20.0f;
 
-    // Obliczamy idealny środek ekranu wirtualnego
     float centerX = virtualWidth / 2.0f;
     float btnX = centerX - (btnWidth / 2.0f);
-    float startY = virtualHeight / 2.0f -
-                   50.0f; // Zaczynamy rysować trochę nad środkiem ekranu
+    float startY = virtualHeight / 2.0f - 50.0f;
 
-    // 3. TYTUŁ GRY
     const char *title = "Zomwave 2D";
     int titleSize = 60;
-    // Funkcja MeasureText pozwala wyliczyć długość tekstu, żeby idealnie go
-    // wyśrodkować!
     int titleWidth = MeasureText(title, titleSize);
     DrawText(title, centerX - (titleWidth / 2), 100, titleSize, MAROON);
 
-    // 4. PRZYCISKI RAYGUI
-    // Z każdym przyciskiem dodajemy 'btnHeight + spacing' do osi Y, żeby je
-    // ułożyć w kolumnie
-
     if (GuiButton({btnX, startY, btnWidth, btnHeight}, "GRAJ")) {
-        // Tu zmieniamy stan na grę!
+        audioManager.PlayUIClick();
         currentState = GameState::PLAYING;
+        audioManager.PlayGameMusic();
     }
     if (GuiButton({btnX, startY + (btnHeight + spacing), btnWidth, btnHeight},
                   "USTAWIENIA")) {
+        audioManager.PlayUIClick();
+        previousState = currentState;
         currentState = GameState::SETTINGS;
     }
 
     if (GuiButton(
             {btnX, startY + (btnHeight + spacing) * 2, btnWidth, btnHeight},
             "WYJDZ")) {
+        audioManager.PlayUIClick();
         currentState = GameState::EXIT;
     }
 }
 
 void Game::DrawPlaying() {
-    DrawTexture(resources->texSkyBox, 0, 0, WHITE);
+    DrawTexturePro(resources->texSkyBox,
+                   {0, 0, (float)resources->texSkyBox.width,
+                    (float)resources->texSkyBox.height},
+                   {0, 0, (float)virtualWidth, (float)virtualHeight}, {0, 0}, 0,
+                   WHITE);
 
     BeginMode2D(camera);
     levelMap->DrawBackground();
@@ -269,34 +278,69 @@ void Game::DrawPlaying() {
 
     uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
 
-    shopManager.DrawShop(player, resources);
+    shopManager.DrawShop(player, resources, &audioManager);
 }
 
 void Game::DrawSettings() {
+    float startPos = 20;
+    float marginTop = 80;
+
     DrawRectangle(0, 0, virtualWidth, virtualHeight, {20, 20, 20, 255});
 
     float centerX = virtualWidth / 2.0f;
     float btnWidth = 300.0f;
     float btnX = centerX - (btnWidth / 2.0f);
 
-    const char *title = "USTAWIENIA";
-    int titleWidth = MeasureText(title, 50);
-    DrawText(title, centerX - (titleWidth / 2.0f), 100, 50, LIGHTGRAY);
+    DrawText("USTAWIENIA", centerX - MeasureText("USTAWIENIA", 50) / 2,
+             startPos, 50, LIGHTGRAY);
 
-    const char *volText =
-        TextFormat("GLOSNOSC: %i%%", (int)(masterVolume * 100));
-    int volTextWidth = MeasureText(volText, 30);
-    DrawText(volText, centerX - (volTextWidth / 2.0f), 220, 30, GRAY);
+    const char *musText =
+        TextFormat("MUZYKA: %i%%", (int)(audioManager.GetMusicVolume() * 100));
+    DrawText(musText, centerX - MeasureText(musText, 25) / 2,
+             startPos + marginTop, 25, GRAY);
 
-    GuiSlider({btnX, 270, btnWidth, 40}, "0%", "100%", &masterVolume, 0.0f,
-              1.0f);
+    float tempMusicVol = audioManager.GetMusicVolume();
 
-    SetMasterVolume(masterVolume);
+    GuiSlider({btnX, startPos + marginTop + 40, btnWidth, 40}, "0%", "100%",
+              &tempMusicVol, 0.0f, 1.0f);
 
-    // 5. PRZYCISK POWROTU
-    if (GuiButton({centerX - 100.0f, virtualHeight - 100.0f, 200, 50},
-                  "WROC DO MENU")) {
-        currentState = GameState::MAIN_MENU;
+    if (tempMusicVol != audioManager.GetMusicVolume()) {
+        audioManager.SetMusicVolume(tempMusicVol);
+    }
+
+    const char *sfxText = TextFormat("EFEKTY (SFX): %i%%",
+                                     (int)(audioManager.GetSFXVolume() * 100));
+    DrawText(sfxText, centerX - MeasureText(sfxText, 25) / 2,
+             startPos + (marginTop * 2) + 20, 25, GRAY);
+
+    float tempSfxVol = audioManager.GetSFXVolume();
+    GuiSlider({btnX, startPos + (marginTop * 2) + 60, btnWidth, 40}, "0%",
+              "100%", &tempSfxVol, 0.0f, 1.0f);
+
+    if (tempSfxVol != audioManager.GetSFXVolume()) {
+        audioManager.SetSFXVolume(tempSfxVol);
+    }
+
+    const char *fpsText =
+        TextFormat("LIMIT FPS: %i", fpsOptions[currentFpsIndex]);
+
+    if (GuiButton({btnX, startPos + (marginTop * 3) + 40, btnWidth, 50},
+                  fpsText)) {
+        currentFpsIndex++; // Zwiększamy indeks
+
+        if (currentFpsIndex >= fpsOptions.size()) {
+            currentFpsIndex = 0;
+        }
+
+        audioManager.PlayUIClick();
+        SetTargetFPS(fpsOptions[currentFpsIndex]);
+    }
+
+    if (GuiButton({centerX - 100.0f, startPos + (marginTop * 4) + 40, 200, 50},
+                  "WROC")) {
+        ConfigManager::SaveSettings(audioManager, currentFpsIndex);
+        audioManager.PlayUIClick();
+        currentState = previousState;
     }
 }
 
@@ -313,12 +357,25 @@ void Game::DrawPaused() {
              LIGHTGRAY);
 
     if (GuiButton({btnX, 170, btnWidth, 50}, "WROC DO GRY")) {
+        audioManager.PlayUIClick();
         currentState = GameState::PLAYING;
+        audioManager.ResumeMusic();
     }
 
-    if (GuiButton({btnX, 250, btnWidth, 50}, "MENU GLOWNE")) {
+    if (GuiButton({btnX, 240, btnWidth, 50}, "USTAWIENIA")) {
+        audioManager.PlayUIClick();
+        previousState = currentState;
+        currentState = GameState::SETTINGS;
+    }
+
+    if (GuiButton({btnX, 310, btnWidth, 50}, "MENU GLOWNE")) {
+        audioManager.PlayUIClick();
         currentState = GameState::MAIN_MENU;
+        audioManager.PlayMenuMusic();
     }
 }
 
-void Game::SpawnPlayer() { player->SetPosition(levelMap->GetSpawnPoint()); }
+void Game::SpawnPlayer() {
+    player->isAlive = true;
+    player->SetPosition(levelMap->GetSpawnPoint());
+}

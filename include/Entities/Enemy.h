@@ -1,10 +1,12 @@
 #pragma once
+#include "Managers/AudioManager.h"
 #include "Map.h"
 #include "raylib.h"
 
 class Enemy {
   protected:
     float width, height;
+    AudioManager* audioManager;
 
   public:
     Vector2 position;

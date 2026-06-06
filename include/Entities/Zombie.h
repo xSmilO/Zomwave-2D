@@ -7,9 +7,10 @@ class Zombie : public Enemy {
     float speed;
     bool texFlip;
     Animator animator;
+    float ambientTimer;
 
   public:
-    Zombie(Texture2D *texZombie, Vector2 startPos);
+    Zombie(Texture2D *texZombie, Vector2 startPos, AudioManager *am);
 
     void Update(float dt, Vector2 playerPos, Map *map) override;
     void Draw() override;

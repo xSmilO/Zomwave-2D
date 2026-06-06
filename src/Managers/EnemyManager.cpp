@@ -1,22 +1,26 @@
 #include "Managers/EnemyManager.h"
 #include "Entities/Skeleton.h"
 #include "Entities/Zombie.h"
+#include "Managers/AudioManager.h"
 #include "Managers/BulletManager.h"
 #include "raymath.h"
 #include <memory>
 
-EnemyManager::EnemyManager(ResourceManager *resources, BulletManager *bm) {
-    this->resources = resources;
+EnemyManager::EnemyManager(ResourceManager *rm, BulletManager *bm,
+                           AudioManager *am) {
+    resources = rm;
     bulletManager = bm;
+    audioManager = am;
 }
 
 void EnemyManager::SpawnZombie(Vector2 pos) {
-    enemies.push_back(std::make_unique<Zombie>(&resources->texZombie, pos));
+    enemies.push_back(std::make_unique<Zombie>(&resources->texZombie, pos, audioManager));
 }
 
 void EnemyManager::SpawnSkeleton(Vector2 pos) {
-    enemies.push_back(std::make_unique<Skeleton>(
-        &resources->texSkeleton, &resources->texBow, pos, bulletManager));
+    enemies.push_back(std::make_unique<Skeleton>(&resources->texSkeleton,
+                                                 &resources->texBow, pos,
+                                                 bulletManager, audioManager));
 }
 
 void EnemyManager::Update(float dt, Player *player, Map *map,
@@ -71,7 +75,6 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
             float minDistance = 30.0f;
 
             if (distance < minDistance && distance > 0.01f) {
-                printf("pchanie\n");
                 float overlap = minDistance - distance;
 
                 Vector2 direction = Vector2Normalize(diff);
@@ -97,13 +100,13 @@ void EnemyManager::Draw() {
 }
 
 std::unique_ptr<Enemy> EnemyManager::CreateZombie() {
-    return std::make_unique<Zombie>(&resources->texZombie, Vector2{0, 0});
+    return std::make_unique<Zombie>(&resources->texZombie, Vector2{0, 0}, audioManager);
 }
 
 std::unique_ptr<Enemy> EnemyManager::CreateSkeleton() {
     return std::make_unique<Skeleton>(&resources->texSkeleton,
                                       &resources->texBow, Vector2{0, 0},
-                                      bulletManager);
+                                      bulletManager, audioManager);
 }
 
 void EnemyManager::AddEnemy(std::unique_ptr<Enemy> enemy) {

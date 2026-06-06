@@ -1,5 +1,6 @@
 #pragma once
 #include "Entities/Player.h"
+#include "Managers/AudioManager.h"
 #include "Managers/EnemyManager.h"
 #include "Managers/PickupManager.h"
 #include "Managers/ResourceManager.h"
@@ -9,17 +10,12 @@
 #include "Map.h"
 #include "raylib.h"
 
-enum class GameState {
-    MAIN_MENU,
-    PLAYING,
-    SETTINGS,
-    PAUSED,
-    EXIT
-};
+enum class GameState { MAIN_MENU, PLAYING, SETTINGS, PAUSED, EXIT };
 
 class Game {
   private:
     GameState currentState;
+    GameState previousState;
     Camera2D camera;
     Vector2 mousePosition;
     Player *player;
@@ -27,7 +23,7 @@ class Game {
     int screenHeight{};
     Map *levelMap;
     ResourceManager *resources;
-    PickupManager* pickupManager;
+    PickupManager *pickupManager;
     UIManager *uiManager;
 
     BulletManager *bulletManager;
@@ -35,6 +31,10 @@ class Game {
     WaveManager *waveManager;
 
     ShopManager shopManager;
+    AudioManager audioManager;
+
+    std::vector<int> fpsOptions = {30, 60, 90, 120, 144, 180, 240};
+    int currentFpsIndex = 1;
 
     RenderTexture2D target;
     const int virtualWidth = 800;

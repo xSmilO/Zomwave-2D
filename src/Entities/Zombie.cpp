@@ -3,7 +3,8 @@
 #include <raymath.h>
 #include <vector>
 
-Zombie::Zombie(Texture2D *texZombie, Vector2 startPos) {
+Zombie::Zombie(Texture2D *texZombie, Vector2 startPos, AudioManager* am) {
+    audioManager = am;
     position = startPos;
     speed = 100.0f;
     width = 24.0f;
@@ -13,6 +14,7 @@ Zombie::Zombie(Texture2D *texZombie, Vector2 startPos) {
     active = true;
     attackTimer = 0.0f;
     attackCooldown = 1.5f;
+    ambientTimer = GetRandomValue(300, 800) / 100.0f;
 
     std::vector<Vector2> walkFramePos = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
 
@@ -27,6 +29,12 @@ void Zombie::Update(float dt, Vector2 playerPos, Map *map) {
 
     if (attackTimer > 0.0f) {
         attackTimer -= dt;
+    }
+
+    ambientTimer -= dt;
+    if (ambientTimer <= 0.0f) {
+        audioManager->PlayZombieAmbient(position,  playerPos);
+        ambientTimer = GetRandomValue(300, 800) / 100.0f;
     }
 
     animator.Update(dt);
