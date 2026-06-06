@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entities/Player.h"
+#include "Managers/GameBalance.h"
 #include "Managers/ResourceManager.h"
 #include <string>
 #include <vector>
@@ -25,7 +26,7 @@ class ShopManager {
     std::vector<Upgrade> upgrades;
     int currentTab = 0;
     Vector2 scrollOffset = {0, 0};
-    ResourceManager* resourceManager;
+    ResourceManager *resourceManager;
     Rectangle windowBounds = {100, 25, 600, 400};
     int potionCost = 50;
     int potionsBought = 0;
@@ -37,6 +38,7 @@ class ShopManager {
 
     bool isOpen = false;
 
-    void DrawShop(Player *player, ResourceManager* resourceManager, AudioManager* audioManager);
+    void DrawShop(Player *player, ResourceManager *resourceManager,
+                  AudioManager *audioManager, const GameBalance &balance);
     void ApplyUpgrade(Player *player, Upgrade &upgrade);
 };

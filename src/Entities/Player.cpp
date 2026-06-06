@@ -8,13 +8,14 @@
 #include <algorithm>
 #include <cmath>
 
-Player::Player(ResourceManager *resourceManager, AudioManager *audioManager) {
+Player::Player(ResourceManager *resourceManager, AudioManager *audioManager,
+               GameBalance *gm) {
     this->resourceManager = resourceManager;
     this->audioManager = audioManager;
+    gameBalance = gm;
     position = {0.0f, 0.0f};
     currentWeaponIndex = 0;
 
-    speed = 256.0f;
     width = 30.0f;
     height = 30.0f;
     timeBetweenSteps = 0.4f;
@@ -42,6 +43,7 @@ Player::Player(ResourceManager *resourceManager, AudioManager *audioManager) {
 
     animator.SetState("idle");
 
+    InitStats();
     InitializeArsenal();
 }
 
@@ -123,7 +125,6 @@ void Player::Update(float dt, Vector2 mousePosition, Map *map,
 
 void Player::Draw() {
     if (invincibilityTimer > 0.0f) {
-        printf("kurwa");
         int blink = (int)(invincibilityTimer * 20.0f);
         if (blink % 2 == 0)
             return;
@@ -183,20 +184,13 @@ void Player::InitializeArsenal() {
     std::vector<Vector2> reloadFramePos = {};
     arsenal.push_back(std::make_unique<Weapon>());
     Weapon *glock = arsenal.back().get();
-    glock->name = "Glock-18";
+    glock->name = "Glock";
     glock->type = WeaponType::GLOCK;
     glock->width = 40;
     glock->height = 32;
-    glock->maxAmmo = 12;
-    glock->currentAmmo = glock->maxAmmo;
-    glock->damage = 10;
     glock->isUnlocked = true;
-    glock->reloadTime = 1.5f;
-    glock->fireCooldown = 0.45f;
-    glock->upgradeCost = 50;
-    glock->currentLevel = 1;
-    glock->maxLevel = 5;
     glock->barrelOffest = {15, -8};
+    glock->LoadStatsFromBalance(*gameBalance);
 
     shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
                      {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
@@ -221,18 +215,10 @@ void Player::InitializeArsenal() {
     mp5->type = WeaponType::MP5;
     mp5->width = 50;
     mp5->height = 34;
-    mp5->maxAmmo = 25;
-    mp5->currentAmmo = mp5->maxAmmo;
-    mp5->damage = 8;
-    mp5->spread = 1.5f;
     mp5->isUnlocked = false;
-    mp5->reloadTime = 1.5f;
-    mp5->fireCooldown = 0.1f;
-    mp5->unlockCost = 500;
-    mp5->upgradeCost = 150;
     mp5->currentLevel = 1;
-    mp5->maxLevel = 8;
     mp5->barrelOffest = {16, -10};
+    mp5->LoadStatsFromBalance(*gameBalance);
     shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
                      {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
     reloadFramePos = {{0, 0},  {1, 0},  {2, 0},  {3, 0}, {4, 0},  {5, 0},
@@ -254,24 +240,14 @@ void Player::InitializeArsenal() {
     ak47->type = WeaponType::AK47;
     ak47->width = 60;
     ak47->height = 36;
-    ak47->maxAmmo = 31;
-    ak47->currentAmmo = ak47->maxAmmo;
-    ak47->damage = 8;
-    ak47->spread = 1.5f;
     ak47->isUnlocked = false;
-    ak47->reloadTime = 1.5f;
-    ak47->fireCooldown = 0.15f;
-    ak47->upgradeCost = 200;
-    ak47->unlockCost = 1500;
-    ak47->currentLevel = 1;
-    ak47->maxLevel = 10;
     ak47->barrelOffest = {18, -10};
+    ak47->LoadStatsFromBalance(*gameBalance);
     shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},  {5, 0},
                      {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}};
     reloadFramePos = {{0, 0},  {1, 0},  {2, 0},  {3, 0}, {4, 0},  {5, 0},
                       {6, 0},  {7, 0},  {8, 0},  {9, 0}, {10, 0}, {11, 0},
                       {12, 0}, {13, 0}, {14, 0}, {15, 0}};
-
 
     ak47->animator.AddAnimation("IDLE", &resourceManager->texAk47Shoot,
                                 {96, 48}, 0, {{0, 0}}, false);
@@ -375,4 +351,17 @@ Weapon *Player::GetWeapon(WeaponType type) {
     }
 
     return nullptr;
+}
+
+void Player::InitStats() {
+    this->coins = gameBalance->player.coins;
+
+    this->maxHealthLevel = 0;
+    this->maxHealth = gameBalance->player.maxHealthLevels[0];
+    this->health = this->maxHealth;
+
+    this->speedLevel = 0;
+    this->speed = gameBalance->player.speedLevels[0];
+
+    this->potionsBought = 0;
 }

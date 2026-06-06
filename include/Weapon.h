@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Animator.h"
+#include "Managers/GameBalance.h"
 #include "raylib.h"
 #include <string>
 enum class WeaponType { GLOCK, SHOTGUN, AK47, MP5, BOW };
@@ -23,16 +24,31 @@ struct Weapon {
     int pellets = 1;
     float spread = 1;
     Vector2 barrelOffest = {0, 0};
-
+    Animator animator;
     int currentAmmo = 10;
     int maxAmmo = 10;
-    float reloadTime = 1.5f;
-    float reloadTimer = 0.0f;
-
     WeaponState state = WeaponState::IDLE;
 
-    Animator animator;
+    void LoadStatsFromBalance(const GameBalance &balance) {
+        const WeaponStats &stats = balance.weapons.at(this->name);
 
-    // Weapon(const Weapon &) = delete;
-    // Weapon &operator=(const Weapon &) = delete;
+        this->unlockCost = stats.unlockCost;
+        this->maxLevel = stats.damage.size();
+
+        int idx = this->currentLevel - 1;
+        if (idx < 0)
+            idx = 0;
+        if (idx >= this->maxLevel)
+            idx = this->maxLevel - 1;
+
+        this->damage = stats.damage[idx];
+        this->maxAmmo = stats.maxAmmo[idx];
+        this->spread = stats.spread[idx];
+        this->fireCooldown = stats.fireCooldown[idx];
+        this->upgradeCost = stats.upgradeCost[idx];
+
+        this->currentAmmo = this->maxAmmo;
+
+        printf("fire cooldown for %s %f\n", this->name.c_str(), this->fireCooldown);
+    }
 };

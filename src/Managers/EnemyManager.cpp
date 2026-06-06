@@ -25,7 +25,7 @@ void EnemyManager::SpawnSkeleton(Vector2 pos) {
 
 void EnemyManager::Update(float dt, Player *player, Map *map,
                           BulletManager *bulletManager,
-                          PickupManager *pickupManager) {
+                          CoinManager *coinManager) {
     for (auto &enemy : enemies) {
         enemy->Update(dt, player->GetPosition(), map);
 
@@ -47,8 +47,8 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
 
                     if (enemy->health <= 0) {
                         enemy->active = false;
-                        // dropnij coina
-                        pickupManager->Spawn(enemy->position, PickupType::COIN);
+
+                        coinManager->SpawnCoin(enemy->position, 10);
                     }
                 }
             }

@@ -16,8 +16,6 @@ bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
         }
     }
 
-    Rectangle hit = enemy->GetHitbox();
-
     if (candidates.empty()) {
         return false;
     }

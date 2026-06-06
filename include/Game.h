@@ -2,7 +2,7 @@
 #include "Entities/Player.h"
 #include "Managers/AudioManager.h"
 #include "Managers/EnemyManager.h"
-#include "Managers/PickupManager.h"
+#include "Managers/GameBalance.h"
 #include "Managers/ResourceManager.h"
 #include "Managers/ShopManager.h"
 #include "Managers/UIManager.h"
@@ -14,6 +14,7 @@ enum class GameState { MAIN_MENU, PLAYING, SETTINGS, PAUSED, EXIT };
 
 class Game {
   private:
+    GameBalance balance;
     GameState currentState;
     GameState previousState;
     Camera2D camera;
@@ -23,7 +24,7 @@ class Game {
     int screenHeight{};
     Map *levelMap;
     ResourceManager *resources;
-    PickupManager *pickupManager;
+    CoinManager *coinManager;
     UIManager *uiManager;
 
     BulletManager *bulletManager;

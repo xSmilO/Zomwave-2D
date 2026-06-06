@@ -27,7 +27,9 @@ void ShopManager::ApplyUpgrade(Player *player, Upgrade &upgrade) {
     }
 }
 
-void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager, AudioManager* audioManager) {
+void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
+                           AudioManager *audioManager,
+                           const GameBalance &balance) {
     if (!isOpen)
         return;
 
@@ -122,14 +124,15 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager, Aud
                                           TextFormat("KUP [$%d]",
                                                      weapon->unlockCost))) {
                                 if (player->coins >= weapon->unlockCost) {
+                                    audioManager->PlayBuy();
                                     player->coins -= weapon->unlockCost;
                                     weapon->isUnlocked = true;
+                                    weapon->currentLevel = 1;
+                                    weapon->LoadStatsFromBalance(balance);
                                 }
-                                audioManager->PlayBuy();
                             }
                         }
                     } else {
-
                         Rectangle btnEquip = {btnX, tileY + tileHeight - 100,
                                               btnWidth, 40};
                         Rectangle btnUpgrade = {btnX, tileY + tileHeight - 50,
@@ -151,18 +154,25 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager, Aud
                             bool maxLvl =
                                 weapon->currentLevel == weapon->maxLevel;
                             const char *upgradeText =
-                                maxLvl ? "MAX LVL" : "ULEPSZ BRON [$%d]";
+                                maxLvl ? "MAX LVL" : "ULEPSZ [$%d]";
+
+                            if (maxLvl)
+                                GuiDisable();
+
                             if (GuiButton(btnUpgrade,
                                           TextFormat(upgradeText,
-                                                     weapon->upgradeCost)) &&
-                                !maxLvl) {
+                                                     weapon->upgradeCost))) {
                                 if (player->coins >= weapon->upgradeCost) {
                                     audioManager->PlayBuy();
                                     player->coins -= weapon->upgradeCost;
-                                    weapon->damage += 2;
+
                                     weapon->currentLevel++;
+                                    weapon->LoadStatsFromBalance(balance);
                                 }
                             }
+
+                            if (maxLvl)
+                                GuiEnable();
                         }
                     }
                 }
@@ -174,35 +184,64 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager, Aud
     // ZAKŁADKA 1: POSTAĆ I PRZEDMIOTY
     // =========================================================
     else if (currentTab == 1) {
-        // POTKA: Leczenie
-        if (GuiButton({120, 140, 300, 40},
-                      TextFormat("Kup Miksture [$%d]", potionCost))) {
-            if (player->coins >= potionCost) {
-                player->coins -= potionCost;
+        int currentPotionCost = balance.player.potionBaseCost;
+        if (player->potionsBought > 0) {
+            currentPotionCost += (int)(balance.player.potionFlatIncrease * (player->potionsBought * balance.player.potionMultiplier));
+        }
+
+        if (GuiButton({120, 140, 300, 40}, TextFormat("Kup Miksture [$%d]", currentPotionCost))) {
+            if (player->coins >= currentPotionCost) {
+                audioManager->PlayBuy();
+                player->coins -= currentPotionCost;
                 player->potions++;
-                potionsBought++;
-                CalculateNewPrices();
+                player->potionsBought++;
             }
         }
 
-        if (GuiButton({120, 190, 300, 40},
-                      TextFormat("Ulepsz Max HP (+20) [$350] (Aktualne: %d)",
-                                 player->maxHealth))) {
-            if (player->coins >= 350) {
-                player->coins -= 150;
-                player->maxHealth += 20;
-                player->health += 20;
+        bool hpMaxed = (player->maxHealthLevel >= balance.player.maxHealthLevels.size() - 1);
+        
+        if (!hpMaxed) {
+            int hpCost = balance.player.healthUpgradeCost[player->maxHealthLevel];
+            float nextHpValue = balance.player.maxHealthLevels[player->maxHealthLevel + 1];
+            float hpBonus = nextHpValue - player->maxHealth;
+            
+            if (GuiButton({120, 190, 300, 40}, TextFormat("Ulepsz Max HP (+%.0f) [$%d]", hpBonus, hpCost))) {
+                if (player->coins >= hpCost) {
+                    audioManager->PlayBuy();
+                    player->coins -= hpCost;
+                    player->maxHealthLevel++;
+                    
+                    // Zwiększamy Max HP z JSON-a i leczymy gracza o dodaną wartość
+                    player->maxHealth = balance.player.maxHealthLevels[player->maxHealthLevel];
+                    player->health += hpBonus; 
+                }
             }
+        } else {
+            GuiDisable();
+            GuiButton({120, 190, 300, 40}, "Max HP [MAX LVL]");
+            GuiEnable();
         }
 
-        if (GuiButton(
-                {120, 240, 300, 40},
-                TextFormat("Lepsze Buty (Szybkosc +10) [$200] (Akt: %.0f)",
-                           player->speed))) {
-            if (player->coins >= 200) {
-                player->coins -= 200;
-                player->speed += 10.0f;
+        bool speedMaxed = (player->speedLevel >= balance.player.speedLevels.size() - 1);
+        
+        if (!speedMaxed) {
+            int speedCost = balance.player.speedUpgradeCost[player->speedLevel];
+            float nextSpeedValue = balance.player.speedLevels[player->speedLevel + 1];
+            float speedBonus = nextSpeedValue - player->speed; // Ile zyskujemy na tym levelu
+            
+            if (GuiButton({120, 240, 300, 40}, TextFormat("Lepsze Buty (+%.0f SPD) [$%d]", speedBonus, speedCost))) {
+                if (player->coins >= speedCost) {
+                    audioManager->PlayBuy();
+                    player->coins -= speedCost;
+                    player->speedLevel++;
+                    
+                    player->speed = balance.player.speedLevels[player->speedLevel];
+                }
             }
+        } else {
+            GuiDisable();
+            GuiButton({120, 240, 300, 40}, "Lepsze Buty [MAX LVL]");
+            GuiEnable();
         }
 
         // Granaty w przyszłości wrzucisz pod współrzędną Y: 290
