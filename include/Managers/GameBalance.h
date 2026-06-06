@@ -46,10 +46,12 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerStats, coins, potionBaseCost,
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WeaponStats, unlockCost, upgradeCost, damage,
                                    maxAmmo, spread, fireCooldown)
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnemyStats, health, speed, damage, attackCooldown, killReward, dropReward)
+
 struct GameBalance {
     PlayerStats player;
     std::unordered_map<std::string, WeaponStats> weapons;
     std::unordered_map<std::string, EnemyStats> enemies;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GameBalance, player, weapons)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GameBalance, player, weapons, enemies)

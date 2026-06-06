@@ -32,7 +32,7 @@ bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
 }
 
 void WaveManager::Update(float dt, EnemyManager *enemyManager,
-                         Vector2 playerPos, Map *map) {
+                         Vector2 playerPos, Map *map, const GameBalance& gb) {
     globalTime += dt;
     waveTimer += dt;
     if (waveTimer >= waveDuration) {
@@ -58,9 +58,9 @@ void WaveManager::Update(float dt, EnemyManager *enemyManager,
         int roll = GetRandomValue(1, 100);
 
         if (roll <= skeletonChance) {
-            newEnemy = enemyManager->CreateSkeleton();
+            newEnemy = enemyManager->CreateSkeleton(gb);
         } else {
-            newEnemy = enemyManager->CreateZombie();
+            newEnemy = enemyManager->CreateZombie(gb);
         }
 
         if (newEnemy != nullptr) {

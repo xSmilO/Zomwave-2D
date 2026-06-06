@@ -187,7 +187,7 @@ void Game::UpdatePlaying(float dt) {
 
     bulletManager->Update(dt, levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
-    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
+    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap, balance);
     enemyManager->Update(dt, player, levelMap, bulletManager, coinManager);
     coinManager->Update(dt, player, &audioManager);
 

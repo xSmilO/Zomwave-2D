@@ -50,11 +50,11 @@
         0
       ],
       "damage": [
-        6.0,
-        8.0,
-        8.5,
-        10.0,
-        12.0
+        15.0,
+        18.0,
+        20.5,
+        22.0,
+        24.0
       ],
       "maxAmmo": [
         12,
@@ -198,16 +198,16 @@
   "enemies": {
     "Zombie": {
       "health": 100.0,
-      "speed": 40.0,
+      "speed": 120.0,
       "damage": 10.0,
       "attackCooldown": 1.5,
       "killReward": 2,
       "dropReward": 5
     },
     "Skeleton": {
-      "health": 60.0,
+      "health": 130.0,
       "speed": 80.0,
-      "damage": 5.0,
+      "damage": 12.0,
       "attackCooldown": 1.0,
       "killReward": 3,
       "dropReward": 8

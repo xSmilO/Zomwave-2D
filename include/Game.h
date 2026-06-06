@@ -1,6 +1,7 @@
 #pragma once
 #include "Entities/Player.h"
 #include "Managers/AudioManager.h"
+#include "Managers/CoinManager.h"
 #include "Managers/EnemyManager.h"
 #include "Managers/GameBalance.h"
 #include "Managers/ResourceManager.h"

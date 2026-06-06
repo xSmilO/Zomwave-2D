@@ -13,16 +13,6 @@ EnemyManager::EnemyManager(ResourceManager *rm, BulletManager *bm,
     audioManager = am;
 }
 
-void EnemyManager::SpawnZombie(Vector2 pos) {
-    enemies.push_back(std::make_unique<Zombie>(&resources->texZombie, pos, audioManager));
-}
-
-void EnemyManager::SpawnSkeleton(Vector2 pos) {
-    enemies.push_back(std::make_unique<Skeleton>(&resources->texSkeleton,
-                                                 &resources->texBow, pos,
-                                                 bulletManager, audioManager));
-}
-
 void EnemyManager::Update(float dt, Player *player, Map *map,
                           BulletManager *bulletManager,
                           CoinManager *coinManager) {
@@ -47,8 +37,9 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
 
                     if (enemy->health <= 0) {
                         enemy->active = false;
-
-                        coinManager->SpawnCoin(enemy->position, 10);
+                        player->coins += enemy->killReward;
+                        coinManager->SpawnCoin(enemy->position,
+                                               enemy->dropReward);
                     }
                 }
             }
@@ -99,14 +90,47 @@ void EnemyManager::Draw() {
     }
 }
 
-std::unique_ptr<Enemy> EnemyManager::CreateZombie() {
-    return std::make_unique<Zombie>(&resources->texZombie, Vector2{0, 0}, audioManager);
+std::unique_ptr<Enemy> EnemyManager::CreateZombie(const GameBalance &gb) {
+    if (gb.enemies.find("Zombie") == gb.enemies.end()) {
+        printf("Error: can't find zombie in config.json!\n");
+        return std::make_unique<Zombie>(&resources->texZombie, Vector2{0, 0},
+                                        audioManager);
+    }
+
+    auto enemy = std::make_unique<Zombie>(&resources->texZombie, Vector2{0, 0},
+                                          audioManager);
+
+    const EnemyStats &stats = gb.enemies.at("Zombie");
+    enemy->maxHealth = stats.health;
+    enemy->health = enemy->maxHealth;
+    enemy->killReward = stats.killReward;
+    enemy->dropReward = stats.dropReward;
+    enemy->attackCooldown = stats.attackCooldown;
+    enemy->speed = stats.speed;
+    enemy->damage = stats.damage;
+
+    return enemy;
 }
 
-std::unique_ptr<Enemy> EnemyManager::CreateSkeleton() {
-    return std::make_unique<Skeleton>(&resources->texSkeleton,
-                                      &resources->texBow, Vector2{0, 0},
-                                      bulletManager, audioManager);
+std::unique_ptr<Enemy> EnemyManager::CreateSkeleton(const GameBalance &gb) {
+    if (gb.enemies.find("Skeleton") == gb.enemies.end()) {
+        printf("Error: can't find skeleton in config.json!\n");
+        return std::make_unique<Skeleton>(&resources->texSkeleton,
+                                          &resources->texBow, Vector2{0, 0},
+                                          bulletManager, audioManager);
+    }
+    auto enemy =
+        std::make_unique<Skeleton>(&resources->texSkeleton, &resources->texBow,
+                                   Vector2{0, 0}, bulletManager, audioManager);
+    const EnemyStats &stats = gb.enemies.at("Skeleton");
+    enemy->maxHealth = stats.health;
+    enemy->health = enemy->maxHealth;
+    enemy->killReward = stats.killReward;
+    enemy->dropReward = stats.dropReward;
+    enemy->attackCooldown = stats.attackCooldown;
+    enemy->speed = stats.speed;
+    enemy->damage = stats.damage;
+    return enemy;
 }
 
 void EnemyManager::AddEnemy(std::unique_ptr<Enemy> enemy) {
