@@ -255,6 +255,20 @@ if(USE_REACTPHYSICS3D)
 endif()
 
 ##########################################################################################
+# NLOHMANN/JSON Setup
+##########################################################################################
+
+set(dep nlohmann_json)
+add_git_dependency(
+    ${dep}
+    https://github.com/nlohmann/json.git
+    v3.11.3
+)
+FetchContent_GetProperties(${dep})
+
+list(APPEND LIBRARIES nlohmann_json::nlohmann_json)
+
+##########################################################################################
 # Jolt Physics Setup
 ##########################################################################################
 

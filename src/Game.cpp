@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Managers/BulletManager.h"
+#include "Managers/ConfigManager.h"
 #include "Managers/EnemyManager.h"
 #include "Managers/UIManager.h"
 #include "Managers/WaveManager.h"
@@ -17,6 +18,7 @@ Game::Game() {
     SetTargetFPS(
         144); // do not set fps when used in browser for better web performance
 #endif
+    previousState = GameState::MAIN_MENU;
     currentState = GameState::MAIN_MENU;
     screenWidth = 1920;
     screenHeight = 1080;
@@ -50,6 +52,7 @@ Game::Game() {
     player = new Player(resources, &audioManager);
 
     SpawnPlayer();
+    ConfigManager::LoadSettings(audioManager, currentFpsIndex, fpsOptions);
     audioManager.PlayMenuMusic();
 }
 
@@ -244,6 +247,7 @@ void Game::DrawMainMenu() {
     if (GuiButton({btnX, startY + (btnHeight + spacing), btnWidth, btnHeight},
                   "USTAWIENIA")) {
         audioManager.PlayUIClick();
+        previousState = currentState;
         currentState = GameState::SETTINGS;
     }
 
@@ -278,23 +282,27 @@ void Game::DrawPlaying() {
 }
 
 void Game::DrawSettings() {
+    float startPos = 20;
+    float marginTop = 80;
+
     DrawRectangle(0, 0, virtualWidth, virtualHeight, {20, 20, 20, 255});
 
     float centerX = virtualWidth / 2.0f;
     float btnWidth = 300.0f;
     float btnX = centerX - (btnWidth / 2.0f);
 
-    DrawText("USTAWIENIA", centerX - MeasureText("USTAWIENIA", 50) / 2, 80, 50,
-             LIGHTGRAY);
+    DrawText("USTAWIENIA", centerX - MeasureText("USTAWIENIA", 50) / 2,
+             startPos, 50, LIGHTGRAY);
 
     const char *musText =
         TextFormat("MUZYKA: %i%%", (int)(audioManager.GetMusicVolume() * 100));
-    DrawText(musText, centerX - MeasureText(musText, 25) / 2, 180, 25, GRAY);
+    DrawText(musText, centerX - MeasureText(musText, 25) / 2,
+             startPos + marginTop, 25, GRAY);
 
     float tempMusicVol = audioManager.GetMusicVolume();
 
-    GuiSlider({btnX, 210, btnWidth, 40}, "0%", "100%", &tempMusicVol, 0.0f,
-              1.0f);
+    GuiSlider({btnX, startPos + marginTop + 40, btnWidth, 40}, "0%", "100%",
+              &tempMusicVol, 0.0f, 1.0f);
 
     if (tempMusicVol != audioManager.GetMusicVolume()) {
         audioManager.SetMusicVolume(tempMusicVol);
@@ -302,10 +310,12 @@ void Game::DrawSettings() {
 
     const char *sfxText = TextFormat("EFEKTY (SFX): %i%%",
                                      (int)(audioManager.GetSFXVolume() * 100));
-    DrawText(sfxText, centerX - MeasureText(sfxText, 25) / 2, 280, 25, GRAY);
+    DrawText(sfxText, centerX - MeasureText(sfxText, 25) / 2,
+             startPos + (marginTop * 2) + 20, 25, GRAY);
 
     float tempSfxVol = audioManager.GetSFXVolume();
-    GuiSlider({btnX, 310, btnWidth, 40}, "0%", "100%", &tempSfxVol, 0.0f, 1.0f);
+    GuiSlider({btnX, startPos + (marginTop * 2) + 60, btnWidth, 40}, "0%",
+              "100%", &tempSfxVol, 0.0f, 1.0f);
 
     if (tempSfxVol != audioManager.GetSFXVolume()) {
         audioManager.SetSFXVolume(tempSfxVol);
@@ -314,19 +324,22 @@ void Game::DrawSettings() {
     const char *fpsText =
         TextFormat("LIMIT FPS: %i", fpsOptions[currentFpsIndex]);
 
-    if (GuiButton({btnX, 410, btnWidth, 50}, fpsText)) {
+    if (GuiButton({btnX, startPos + (marginTop * 3) + 40, btnWidth, 50}, fpsText)) {
         currentFpsIndex++; // Zwiększamy indeks
 
         if (currentFpsIndex >= fpsOptions.size()) {
             currentFpsIndex = 0;
         }
 
+        audioManager.PlayUIClick();
         SetTargetFPS(fpsOptions[currentFpsIndex]);
     }
 
-    if (GuiButton({centerX - 100.0f, virtualHeight - 100.0f, 200, 50},
-                  "WROC DO MENU")) {
-        currentState = GameState::MAIN_MENU;
+    if (GuiButton({centerX - 100.0f, startPos + (marginTop * 4) + 40, 200, 50},
+                  "WROC")) {
+        ConfigManager::SaveSettings(audioManager, currentFpsIndex);
+        audioManager.PlayUIClick();
+        currentState = previousState;
     }
 }
 
@@ -348,7 +361,13 @@ void Game::DrawPaused() {
         audioManager.ResumeMusic();
     }
 
-    if (GuiButton({btnX, 250, btnWidth, 50}, "MENU GLOWNE")) {
+    if (GuiButton({btnX, 240, btnWidth, 50}, "USTAWIENIA")) {
+        audioManager.PlayUIClick();
+        previousState = currentState;
+        currentState = GameState::SETTINGS;
+    }
+
+    if (GuiButton({btnX, 310, btnWidth, 50}, "MENU GLOWNE")) {
         audioManager.PlayUIClick();
         currentState = GameState::MAIN_MENU;
         audioManager.PlayMenuMusic();

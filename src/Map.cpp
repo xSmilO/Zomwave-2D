@@ -4,7 +4,7 @@
 #include "raylib.h"
 
 Map::Map() {
-    project.loadFromFile("../assets/dungeon_map.ldtk");
+    project.loadFromFile("../assets/map.ldtk");
     currentLevel = &project.getWorld().getLevel("Level_0");
     mapSize = {(float)currentLevel->size.x, (float)currentLevel->size.y};
 

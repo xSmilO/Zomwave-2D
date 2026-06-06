@@ -15,6 +15,7 @@ enum class GameState { MAIN_MENU, PLAYING, SETTINGS, PAUSED, EXIT };
 class Game {
   private:
     GameState currentState;
+    GameState previousState;
     Camera2D camera;
     Vector2 mousePosition;
     Player *player;
@@ -32,7 +33,7 @@ class Game {
     ShopManager shopManager;
     AudioManager audioManager;
 
-    std::vector<int> fpsOptions = {30, 60, 90, 120, 144, 175, 180, 240};
+    std::vector<int> fpsOptions = {30, 60, 90, 120, 144, 180, 240};
     int currentFpsIndex = 1;
 
     RenderTexture2D target;

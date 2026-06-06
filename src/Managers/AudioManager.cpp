@@ -111,6 +111,7 @@ void AudioManager::PlayMenuMusic() {
     }
 
     isPlayingMenuMusic = true;
+    printf("gra menu %f\n", musicVolume);
     PlayMusicStream(resources->bgmMenu);
     ::SetMusicVolume(resources->bgmMenu, musicVolume);
 }
@@ -144,6 +145,8 @@ void AudioManager::ResumeMusic() {
 
 void AudioManager::SetMusicVolume(float volume) {
     musicVolume = volume;
+
+    printf("Ustawiam %f\n", musicVolume);
 
     if (resources == nullptr)
         return;

@@ -18,7 +18,7 @@ class AudioManager {
     // Music *currentMusic = nullptr;
 
     void RegisterWeaponSound(WeaponType type, Sound baseSound);
-    float musicVolume = 0.2f;
+    float musicVolume = 0.5f;
     float sfxVolume = 0.5f;
     bool isPlayingMenuMusic = false;
     int currentGameTrackIndex = -1;
