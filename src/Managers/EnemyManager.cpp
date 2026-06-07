@@ -50,8 +50,14 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
         }
     }
 
-    std::erase_if(enemies,
-                  [](const std::unique_ptr<Enemy> &e) { return !e->active; });
+    // std::erase_if(enemies,
+    //               [](const std::unique_ptr<Enemy> &e) { return !e->active; });
+
+    enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
+                                 [](const std::unique_ptr<Enemy> &e) {
+                                     return !e->active;
+                                 }),
+                  enemies.end());
 
     std::vector<Vector2> oldPositions(enemies.size());
 

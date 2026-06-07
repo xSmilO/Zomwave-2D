@@ -1,9 +1,11 @@
 #include "Managers/UIManager.h"
 #include "raylib.h"
 
-UIManager::UIManager(Texture2D *texHealthPotion, Texture2D *texCoin) {
+UIManager::UIManager(Texture2D *texHealthPotion, Texture2D *texCoin,
+                     Texture2D *texBomb) {
     this->texHealthPotion = texHealthPotion;
     this->texCoin = texCoin;
+    this->texBomb = texBomb;
 }
 
 void UIManager::DrawHUD(Player *player, WaveManager *waveManager,
@@ -80,13 +82,23 @@ void UIManager::DrawEnemies(EnemyManager *enemyManager, int screenWidth) {
 }
 
 void UIManager::DrawLootInfo(Player *player) {
-    DrawTextureV(*texHealthPotion, {10, 60}, WHITE);
+    DrawTexturePro(*texHealthPotion,
+                   {0, 0, (float)texHealthPotion->width, (float)texHealthPotion->height},
+                   {6, 60, 20, 20}, {0, 0}, 0, WHITE);
     DrawText(TextFormat("x %d", player->potions), 32, 60, 20, BLACK);
     DrawText(TextFormat("x %d", player->potions), 30, 58, 20, WHITE);
 
-    DrawTextureV(*texCoin, {10, 80}, WHITE);
+    DrawTexturePro(*texCoin,
+                   {0, 0, (float)texCoin->width, (float)texCoin->height},
+                   {10, 86, 12, 12}, {0, 0}, 0, WHITE);
     DrawText(TextFormat("x %d", player->coins), 32, 80, 20, BLACK);
     DrawText(TextFormat("x %d", player->coins), 30, 78, 20, WHITE);
+
+    DrawTexturePro(*texBomb,
+                   {0, 0, (float)texBomb->width, (float)texBomb->height},
+                   {6, 102, 20, 20}, {0, 0}, 0, WHITE);
+    DrawText(TextFormat("x %d", player->bombs), 32, 100, 20, BLACK);
+    DrawText(TextFormat("x %d", player->bombs), 30, 98, 20, WHITE);
 }
 
 void UIManager::DrawAmmunition(Player *player, int screenWidth,
@@ -116,6 +128,7 @@ void UIManager::DrawAmmunition(Player *player, int screenWidth,
                  posY - 25.0f, nameFontSize, LIGHTGRAY);
         int fontSize = 30;
         int ammoWidth = MeasureText(ammoText, fontSize);
-        DrawText(ammoText, screenWidth - ammoWidth - 20.0f, (int)posY + 10, fontSize, ammoColor);
+        DrawText(ammoText, screenWidth - ammoWidth - 20.0f, (int)posY + 10,
+                 fontSize, ammoColor);
     }
 }

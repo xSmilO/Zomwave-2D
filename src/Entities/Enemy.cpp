@@ -13,3 +13,9 @@ void Enemy::DrawHealthBar() {
     DrawRectangle(barPos.x, barPos.y, barWidth * hpPercent, barHeight, GREEN);
     DrawRectangleLines(barPos.x, barPos.y, barWidth, barHeight, BLACK);
 }
+
+void Enemy::TakeDamage(float damage) {
+    health -= damage;
+    if (health <= 0)
+        active = false;
+}

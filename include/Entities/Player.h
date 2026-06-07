@@ -1,6 +1,7 @@
 #pragma once
 #include "Animator.h"
 #include "Managers/AudioManager.h"
+// #include "Managers/BombManager.h"
 #include "Managers/BulletManager.h"
 #include "Managers/GameBalance.h"
 #include "Managers/ResourceManager.h"
@@ -28,6 +29,7 @@ class Player {
     ResourceManager *resourceManager;
     AudioManager *audioManager;
     GameBalance *gameBalance;
+    // BombManager *bombManager;
 
     void CalculateWeaponPos(Vector2 mousePosition);
     void InitializeArsenal();
@@ -41,6 +43,7 @@ class Player {
 
     int coins;
     int potions;
+    int bombs;
 
     bool isAlive;
 
@@ -50,7 +53,7 @@ class Player {
     int visionLevel;
     float visionRadius;
 
-    Player(ResourceManager *resourceManager, AudioManager *audioManager, GameBalance* gm);
+    Player(ResourceManager *rm, AudioManager *am, GameBalance *gm);
     void Update(float dt, Vector2 mousePosition, Map *map,
                 BulletManager *bulletManager);
     void Draw();

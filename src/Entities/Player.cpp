@@ -1,4 +1,5 @@
 #include "Entities/Player.h"
+#include "Managers/BombManager.h"
 #include "Managers/BulletManager.h"
 #include "Managers/ResourceManager.h"
 #include "Weapon.h"
@@ -8,11 +9,11 @@
 #include <algorithm>
 #include <cmath>
 
-Player::Player(ResourceManager *resourceManager, AudioManager *audioManager,
-               GameBalance *gm) {
-    this->resourceManager = resourceManager;
-    this->audioManager = audioManager;
+Player::Player(ResourceManager *rm, AudioManager *am, GameBalance *gm) {
+    resourceManager = rm;
+    audioManager = am;
     gameBalance = gm;
+
     position = {0.0f, 0.0f};
     currentWeaponIndex = 0;
 
@@ -83,6 +84,10 @@ void Player::Update(float dt, Vector2 mousePosition, Map *map,
         if (health > maxHealth) {
             health = maxHealth;
         }
+    }
+
+    if (IsKeyPressed(KEY_B) && bombs > 0) {
+        bombs--;
     }
 
     float moveX = inputDir.x * speed * dt;
@@ -405,4 +410,7 @@ void Player::InitStats() {
     this->potionsBought = 0;
     this->visionLevel = 0;
     this->visionRadius = gameBalance->player.visionLevels[0];
+    this->bombs = gameBalance->player.bombs;
+    this->potions = gameBalance->player.potions;
+    this->invincibilityDuration = gameBalance->player.invincibilityDuration;
 }

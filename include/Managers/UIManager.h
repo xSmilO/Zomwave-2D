@@ -7,6 +7,7 @@ class UIManager {
   private:
     Texture2D *texHealthPotion;
     Texture2D *texCoin;
+    Texture2D *texBomb;
 
     void DrawWave(WaveManager *waveManager, int screenWidth);
     void DrawHP(Player *player);
@@ -16,7 +17,7 @@ class UIManager {
     void DrawAmmunition(Player *player, int screenWidth, int screenHeight);
 
   public:
-    UIManager(Texture2D* texHealthPotion, Texture2D* texCoin);
+    UIManager(Texture2D* texHealthPotion, Texture2D* texCoin, Texture2D* texBomb);
 
     void DrawHUD(Player *player, WaveManager *waveManager,
                  EnemyManager *enemyManager, int screenWidth, int screenHeight);

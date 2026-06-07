@@ -1,9 +1,8 @@
 {
   "player": {
-    "maxHealth": 300,
-    "speed": 200,
     "coins": 100000,
     "potions": 3,
+    "bombs": 1,
     "invincibilityDuration": 1.5,
     "potionBaseCost": 50,
     "potionFlatIncrease": 30,
@@ -328,5 +327,10 @@
     "baseSpawnInterval": 2.5,
     "waveMultiplier": 0.1,
     "minSpawnInterval": 0.4
+  },
+  "bomb": {
+    "cost": 200,
+    "damage": 100,
+    "radius": 200
   }
 }

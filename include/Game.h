@@ -1,6 +1,7 @@
 #pragma once
 #include "Entities/Player.h"
 #include "Managers/AudioManager.h"
+#include "Managers/BombManager.h"
 #include "Managers/CoinManager.h"
 #include "Managers/EnemyManager.h"
 #include "Managers/GameBalance.h"
@@ -42,6 +43,7 @@ class Game {
     CoinManager coinManager;
     ShopManager shopManager;
     AudioManager audioManager;
+    BombManager bombManager;
 
     std::vector<int> fpsOptions = {30, 60, 90, 120, 144, 180, 240};
     int currentFpsIndex = 1;

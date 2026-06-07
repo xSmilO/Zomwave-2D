@@ -52,6 +52,11 @@ void AudioManager::InitializePools() {
     for (int i = 0; i < SoundPool::MAX_ALIASES; i++) {
         bossDrink.aliases[i] = LoadSoundAlias(resources->sfxBossDrink);
     }
+
+    bombExplosion.currentIndex = 0;
+    for (int i = 0; i < SoundPool::MAX_ALIASES; i++) {
+        bombExplosion.aliases[i] = LoadSoundAlias(resources->sfxBomb);
+    }
 }
 
 void AudioManager::CleanUp() {
@@ -277,4 +282,11 @@ void AudioManager::PlayBossDrink(Vector2 enemyPos, Vector2 playerPos) {
                      playerPos);
     bossDrink.currentIndex =
         (bossDrink.currentIndex + 1) % SoundPool::MAX_ALIASES;
+}
+
+void AudioManager::PlayBombExplosion(Vector2 bombPos, Vector2 playerPos) {
+    PlaySpatialSound(bombExplosion.aliases[bombExplosion.currentIndex], bombPos,
+                     playerPos);
+    bombExplosion.currentIndex =
+        (bombExplosion.currentIndex + 1) % SoundPool::MAX_ALIASES;
 }

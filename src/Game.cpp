@@ -38,13 +38,16 @@ Game::Game() {
 
     audioManager.Init(resources);
 
-    uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin);
+    uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin, &resources->texBomb);
 
     bulletManager = new BulletManager(
         &resources->texBullet, &resources->texArrow, &resources->texBottle);
     enemyManager = new EnemyManager(resources, bulletManager, &audioManager);
     waveManager = new WaveManager();
     waveManager->Init(gameBalance);
+
+    bombManager.damage = gameBalance.bomb.damage;
+    bombManager.explosionRadius = gameBalance.bomb.radius;
 
     lightMask = LoadRenderTexture(virtualWidth, virtualHeight);
     target = LoadRenderTexture(virtualWidth, virtualHeight);
@@ -57,6 +60,8 @@ Game::Game() {
     ConfigManager::LoadSettings(audioManager, currentFpsIndex, fpsOptions);
     audioManager.PlayMenuMusic();
     LoadSave();
+
+    SetTargetFPS(fpsOptions[currentFpsIndex]);
 }
 
 Game::~Game() {
@@ -187,6 +192,7 @@ void Game::UpdatePlaying(float dt) {
         }
 
         currentState = GameState::GAME_OVER;
+        audioManager.PauseMusic();
         return;
     }
 
@@ -197,6 +203,12 @@ void Game::UpdatePlaying(float dt) {
 
     if (IsKeyPressed(KEY_B)) {
         shopManager.isOpen = !shopManager.isOpen;
+    }
+
+    if (IsKeyPressed(KEY_G) && player->bombs > 0) {
+        player->bombs--;
+
+        bombManager.ThrowBomb(player->GetPosition(), mousePosition);
     }
 
     if (shopManager.isOpen) {
@@ -210,6 +222,7 @@ void Game::UpdatePlaying(float dt) {
                         gameBalance);
     enemyManager->Update(dt, player, levelMap, bulletManager, &coinManager);
     coinManager.Update(dt, player, &audioManager);
+    bombManager.Update(dt, player, enemyManager, &audioManager);
 
     for (auto &bullet : bulletManager->bullets) {
         if (!bullet.active)
@@ -301,6 +314,7 @@ void Game::DrawPlaying() {
     coinManager.Draw(resources->texCoin);
     enemyManager->Draw();
     player->Draw();
+    bombManager.Draw(resources->texBomb);
     levelMap->DrawForeground();
     EndMode2D();
 
@@ -469,6 +483,7 @@ void Game::DrawGameOver() {
 
     if (GuiButton({btnX, btnY, (float)btnWidth, (float)btnHeight},
                   "POWROT DO MENU")) {
+        audioManager.PlayMenuMusic();
         currentState = GameState::MAIN_MENU;
 
         player->InitStats();

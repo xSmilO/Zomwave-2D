@@ -40,5 +40,4 @@ class ShopManager {
 
     void DrawShop(Player *player, ResourceManager *resourceManager,
                   AudioManager *audioManager, const GameBalance &balance);
-    void ApplyUpgrade(Player *player, Upgrade &upgrade);
 };

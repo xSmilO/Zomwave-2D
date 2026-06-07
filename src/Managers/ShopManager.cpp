@@ -1,5 +1,6 @@
 #include "Managers/ShopManager.h"
 #include "Managers/AudioManager.h"
+#include "Managers/GameBalance.h"
 #include "Managers/ResourceManager.h"
 #include "raylib.h"
 #include <raygui.h>
@@ -10,21 +11,6 @@ ShopManager::ShopManager() {
 
     upgrades.push_back(
         {"Adrenalina", "+10% Szybkosci", UpgradeType::SPEED, 0, 5, 150});
-}
-
-void ShopManager::ApplyUpgrade(Player *player, Upgrade &upgrade) {
-    player->coins -= upgrade.GetCurrentCost();
-    upgrade.currentLevel++;
-
-    switch (upgrade.type) {
-    case UpgradeType::MAX_HP:
-        player->maxHealth += 20;
-        player->health += 20;
-        break;
-    case UpgradeType::SPEED:
-        player->speed *= 1.1f;
-        break;
-    }
 }
 
 void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
@@ -190,109 +176,230 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
     // ZAKŁADKA 1: POSTAĆ I PRZEDMIOTY
     // =========================================================
     else if (currentTab == 1) {
-        int currentPotionCost = balance.player.potionBaseCost;
-        if (player->potionsBought > 0) {
-            currentPotionCost += (int)(balance.player.potionFlatIncrease *
-                                       (player->potionsBought *
-                                        balance.player.potionMultiplier));
-        }
 
-        if (GuiButton({120, 140, 300, 40},
-                      TextFormat("Kup Miksture [$%d]", currentPotionCost))) {
-            if (player->coins >= currentPotionCost) {
-                audioManager->PlayBuy();
-                player->coins -= currentPotionCost;
-                player->potions++;
-                player->potionsBought++;
+        // --- 1. USTAWIENIA SCROLL PANELA (Kopia z currentTab == 0) ---
+        float scrollY = headerY + 40.0f;
+        float scrollWidth = windowBounds.width - (padding * 2);
+        float scrollHeight =
+            windowBounds.height - (scrollY - windowBounds.y) - padding;
+
+        Rectangle panelBounds = {startX, scrollY, scrollWidth, scrollHeight};
+        Rectangle contentBounds = {
+            startX, scrollY, 1000,
+            scrollHeight - 20}; // 1000px szerokości styknie na 3 kolumny
+        Rectangle view = {0};
+
+        GuiScrollPanel(panelBounds, nullptr, contentBounds, &scrollOffset,
+                       &view);
+        BeginScissorMode((int)view.x, (int)view.y, (int)view.width,
+                         (int)view.height);
+
+        // --- 2. DYNAMICZNE WYMIARY KART ---
+        float cardWidth = 220.0f;
+        float statsWidth = 320.0f;
+        float cardHeight = contentBounds.height - 20.0f;
+
+        float startTileX = contentBounds.x + 10.0f;
+        float tileY = contentBounds.y + 10.0f;
+
+        // X z uwzględnieniem offsetu ze scrollbara
+        float col1_X = startTileX + scrollOffset.x;
+        float col2_X = col1_X + cardWidth + 20.0f;
+        float col3_X = col2_X + cardWidth + 40.0f;
+
+        // ==========================================
+        // KOLUMNA 1: MIKSTURA ZDROWIA
+        // ==========================================
+        Rectangle potRec = {col1_X, tileY, cardWidth, cardHeight};
+        if (CheckCollisionRecs(potRec, view)) {
+            GuiGroupBox(potRec, "Mikstura Zdrowia");
+
+            int currentPotionCost = balance.player.potionBaseCost;
+            if (player->potionsBought > 0) {
+                currentPotionCost += (int)(balance.player.potionFlatIncrease *
+                                           (player->potionsBought *
+                                            balance.player.potionMultiplier));
             }
-        }
 
-        bool hpMaxed = (player->maxHealthLevel >=
-                        balance.player.maxHealthLevels.size() - 1);
+            Texture2D texPot = resourceManager->texHealthPotion;
+            float potScale = 3.0f;
+            float potW = 32 * potScale;
+            float potH = 32 * potScale;
+            Rectangle potDest = {col1_X + (cardWidth / 2.0f) - (potW / 2.0f),
+                                 tileY + 40.0f, potW, potH};
+            DrawTexturePro(texPot,
+                           {0, 0, (float)texPot.width, (float)texPot.height},
+                           potDest, {0, 0}, 0.0f, WHITE);
 
-        if (!hpMaxed) {
-            int hpCost =
-                balance.player.healthUpgradeCost[player->maxHealthLevel];
-            float nextHpValue =
-                balance.player.maxHealthLevels[player->maxHealthLevel + 1];
-            float hpBonus = nextHpValue - player->maxHealth;
+            DrawText(TextFormat("W plecaku: %d", player->potions),
+                     (int)col1_X + 50, (int)(tileY + cardHeight - 80), 15,
+                     SKYBLUE);
 
-            if (GuiButton({120, 190, 300, 40},
-                          TextFormat("Ulepsz Max HP (+%.0f) [$%d]", hpBonus,
-                                     hpCost))) {
-                if (player->coins >= hpCost) {
-                    audioManager->PlayBuy();
-                    player->coins -= hpCost;
-                    player->maxHealthLevel++;
-
-                    // Zwiększamy Max HP z JSON-a i leczymy gracza o dodaną
-                    // wartość
-                    player->maxHealth =
-                        balance.player.maxHealthLevels[player->maxHealthLevel];
-                    player->health += hpBonus;
+            Rectangle btnBuyPot = {col1_X + 10.0f, tileY + cardHeight - 50.0f,
+                                   cardWidth - 20.0f, 40.0f};
+            if (CheckCollisionRecs(
+                    btnBuyPot,
+                    view)) { 
+                if (GuiButton(btnBuyPot,
+                              TextFormat("KUP [$%d]", currentPotionCost))) {
+                    if (player->coins >= currentPotionCost) {
+                        audioManager->PlayBuy();
+                        player->coins -= currentPotionCost;
+                        player->potions++;
+                        player->potionsBought++;
+                    }
                 }
             }
-        } else {
-            GuiDisable();
-            GuiButton({120, 190, 300, 40}, "Max HP [MAX LVL]");
-            GuiEnable();
         }
 
-        bool speedMaxed =
-            (player->speedLevel >= balance.player.speedLevels.size() - 1);
+        // ==========================================
+        // KOLUMNA 2: GRANAT ODŁAMKOWY
+        // ==========================================
+        Rectangle bombRec = {col2_X, tileY, cardWidth, cardHeight};
+        if (CheckCollisionRecs(bombRec, view)) {
+            GuiGroupBox(bombRec, "Bomba");
 
-        if (!speedMaxed) {
-            int speedCost = balance.player.speedUpgradeCost[player->speedLevel];
-            float nextSpeedValue =
-                balance.player.speedLevels[player->speedLevel + 1];
-            float speedBonus =
-                nextSpeedValue - player->speed; // Ile zyskujemy na tym levelu
+            Texture2D texBomb = resourceManager->texBomb;
+            float bombScale = 3.0f;
+            float bW = 32 * bombScale;
+            float bH = 32 * bombScale;
+            Rectangle bombDest = {col2_X + (cardWidth / 2.0f) - (bW / 2.0f),
+                                  tileY + 40.0f, bW, bH};
+            DrawTexturePro(texBomb,
+                           {0, 0, (float)texBomb.width, (float)texBomb.height},
+                           bombDest, {0, 0}, 0.0f, WHITE);
 
-            if (GuiButton({120, 240, 300, 40},
-                          TextFormat("Lepsze Buty (+%.0f SPD) [$%d]",
-                                     speedBonus, speedCost))) {
-                if (player->coins >= speedCost) {
-                    audioManager->PlayBuy();
-                    player->coins -= speedCost;
-                    player->speedLevel++;
+            DrawText(TextFormat("W plecaku: %d", player->bombs),
+                     (int)col2_X + 50, (int)(tileY + cardHeight - 80), 15,
+                     ORANGE);
 
-                    player->speed =
-                        balance.player.speedLevels[player->speedLevel];
+            Rectangle btnBuyBomb = {col2_X + 10.0f, tileY + cardHeight - 50.0f,
+                                    cardWidth - 20.0f, 40.0f};
+            if (CheckCollisionRecs(btnBuyBomb, view)) {
+                if (GuiButton(btnBuyBomb, TextFormat("KUP [$%d]", balance.bomb.cost))) {
+                    if (player->coins >= balance.bomb.cost) {
+                        audioManager->PlayBuy();
+                        player->coins -= balance.bomb.cost;
+                        player->bombs++;
+                    }
                 }
             }
-        } else {
-            GuiDisable();
-            GuiButton({120, 240, 300, 40}, "Lepsze Buty [MAX LVL]");
-            GuiEnable();
         }
 
-        bool visionMaxed =
-            (player->visionLevel >= balance.player.visionLevels.size() - 1);
+        // ==========================================
+        // KOLUMNA 3: ULEPSZENIA STATYSTYK
+        // ==========================================
+        Rectangle statsRec = {col3_X, tileY, statsWidth, cardHeight};
+        if (CheckCollisionRecs(statsRec, view)) {
+            GuiGroupBox(statsRec, "Ulepszenia Postaci");
 
-        if (!visionMaxed) {
-            int visionCost =
-                balance.player.visionUpgradeCost[player->visionLevel];
-            float nextVisionValue =
-                balance.player.visionLevels[player->visionLevel + 1];
-            float visionBonus = nextVisionValue - player->visionRadius;
+            float btnX = col3_X + 15.0f;
+            float btnW = statsWidth - 30.0f;
 
-            if (GuiButton({120, 290, 300, 40},
-                          TextFormat("Lepsza Latarka (+%.0f) [$%d]",
-                                     visionBonus, visionCost))) {
-                if (player->coins >= visionCost) {
-                    audioManager->PlayBuy();
-                    player->coins -= visionCost;
-                    player->visionLevel++;
+            // Dynamiczne wyliczenie odstępów, żeby ładnie wypełniły wysokość
+            // karty
+            float currentY = tileY + 30.0f;
+            float ySpacing = (cardHeight - 40.0f) / 3.0f;
 
-                    player->visionRadius =
-                        balance.player.visionLevels[player->visionLevel];
+            // --- 1. MAX HP ---
+            Rectangle btnHpRec = {btnX, currentY, btnW, 40.0f};
+            if (CheckCollisionRecs(btnHpRec, view)) {
+                bool hpMaxed = (player->maxHealthLevel >=
+                                balance.player.maxHealthLevels.size() - 1);
+                if (!hpMaxed) {
+                    int hpCost = balance.player
+                                     .healthUpgradeCost[player->maxHealthLevel];
+                    float hpBonus =
+                        balance.player
+                            .maxHealthLevels[player->maxHealthLevel + 1] -
+                        player->maxHealth;
+
+                    if (GuiButton(btnHpRec, TextFormat("Max HP (+%.0f) [$%d]",
+                                                       hpBonus, hpCost))) {
+                        if (player->coins >= hpCost) {
+                            audioManager->PlayBuy();
+                            player->coins -= hpCost;
+                            player->maxHealthLevel++;
+                            player->maxHealth =
+                                balance.player
+                                    .maxHealthLevels[player->maxHealthLevel];
+                            player->health += hpBonus;
+                        }
+                    }
+                } else {
+                    GuiDisable();
+                    GuiButton(btnHpRec, "Max HP [MAX LVL]");
+                    GuiEnable();
                 }
             }
-        } else {
-            GuiDisable();
-            GuiButton({120, 290, 300, 40}, "Lepsza Latarka [MAX LVL]");
-            GuiEnable();
+
+            currentY += ySpacing;
+
+            // --- 2. SZYBKOŚĆ (BUTY) ---
+            Rectangle btnSpeedRec = {btnX, currentY, btnW, 40.0f};
+            if (CheckCollisionRecs(btnSpeedRec, view)) {
+                bool speedMaxed = (player->speedLevel >=
+                                   balance.player.speedLevels.size() - 1);
+                if (!speedMaxed) {
+                    int speedCost =
+                        balance.player.speedUpgradeCost[player->speedLevel];
+                    float speedBonus =
+                        balance.player.speedLevels[player->speedLevel + 1] -
+                        player->speed;
+
+                    if (GuiButton(btnSpeedRec,
+                                  TextFormat("Lepsze Buty (+%.0f SPD) [$%d]",
+                                             speedBonus, speedCost))) {
+                        if (player->coins >= speedCost) {
+                            audioManager->PlayBuy();
+                            player->coins -= speedCost;
+                            player->speedLevel++;
+                            player->speed =
+                                balance.player.speedLevels[player->speedLevel];
+                        }
+                    }
+                } else {
+                    GuiDisable();
+                    GuiButton(btnSpeedRec, "Lepsze Buty [MAX LVL]");
+                    GuiEnable();
+                }
+            }
+
+            currentY += ySpacing;
+
+            // --- 3. WIZJA (LATARKA) ---
+            Rectangle btnVisRec = {btnX, currentY, btnW, 40.0f};
+            if (CheckCollisionRecs(btnVisRec, view)) {
+                bool visionMaxed = (player->visionLevel >=
+                                    balance.player.visionLevels.size() - 1);
+                if (!visionMaxed) {
+                    int visionCost =
+                        balance.player.visionUpgradeCost[player->visionLevel];
+                    float visionBonus =
+                        balance.player.visionLevels[player->visionLevel + 1] -
+                        player->visionRadius;
+
+                    if (GuiButton(btnVisRec,
+                                  TextFormat("Lepsza Latarka (+%.0f) [$%d]",
+                                             visionBonus, visionCost))) {
+                        if (player->coins >= visionCost) {
+                            audioManager->PlayBuy();
+                            player->coins -= visionCost;
+                            player->visionLevel++;
+                            player->visionRadius =
+                                balance.player
+                                    .visionLevels[player->visionLevel];
+                        }
+                    }
+                } else {
+                    GuiDisable();
+                    GuiButton(btnVisRec, "Lepsza Latarka [MAX LVL]");
+                    GuiEnable();
+                }
+            }
         }
+
+        EndScissorMode(); // Koniec maskowania dla całego scroll panela
     }
 }
 
