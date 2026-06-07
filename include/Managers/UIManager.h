@@ -13,10 +13,11 @@ class UIManager {
     void DrawTime(WaveManager *waveManager, int screenWidth);
     void DrawEnemies(EnemyManager *enemyManager, int screenWidth);
     void DrawLootInfo(Player *player);
+    void DrawAmmunition(Player *player, int screenWidth, int screenHeight);
 
   public:
     UIManager(Texture2D* texHealthPotion, Texture2D* texCoin);
 
     void DrawHUD(Player *player, WaveManager *waveManager,
-                 EnemyManager *enemyManager, int screenWidth);
+                 EnemyManager *enemyManager, int screenWidth, int screenHeight);
 };

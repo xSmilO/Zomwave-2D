@@ -10,12 +10,20 @@
 #include "Managers/WaveManager.h"
 #include "Map.h"
 #include "raylib.h"
+#include <nlohmann/json.hpp>
 
-enum class GameState { MAIN_MENU, PLAYING, SETTINGS, PAUSED, EXIT };
+enum class GameState { MAIN_MENU, PLAYING, SETTINGS, PAUSED, EXIT, GAME_OVER };
+
+struct SaveData {
+    int highScoreWave = 0;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SaveData, highScoreWave)
 
 class Game {
   private:
-    GameBalance balance;
+    SaveData saveData;
+    GameBalance gameBalance;
     GameState currentState;
     GameState previousState;
     Camera2D camera;
@@ -25,19 +33,20 @@ class Game {
     int screenHeight{};
     Map *levelMap;
     ResourceManager *resources;
-    CoinManager *coinManager;
     UIManager *uiManager;
 
     BulletManager *bulletManager;
     EnemyManager *enemyManager;
     WaveManager *waveManager;
 
+    CoinManager coinManager;
     ShopManager shopManager;
     AudioManager audioManager;
 
     std::vector<int> fpsOptions = {30, 60, 90, 120, 144, 180, 240};
     int currentFpsIndex = 1;
 
+    RenderTexture2D lightMask;
     RenderTexture2D target;
     const int virtualWidth = 800;
     const int virtualHeight = 450;
@@ -49,6 +58,8 @@ class Game {
     void DrawPlaying();
     void DrawSettings();
     void DrawPaused();
+    void DrawGameOver();
+    void DrawLights();
 
     void Update();
     void UpdateMainMenu(float dt);
@@ -58,6 +69,9 @@ class Game {
 
     void SpawnPlayer();
     static void MainLoopHelper(void *userData);
+
+    void LoadSave();
+    void SaveGame();
 
   public:
     Game();

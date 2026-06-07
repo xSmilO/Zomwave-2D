@@ -92,7 +92,10 @@ void BulletManager::Draw() {
         Vector2 origin = {(float)texToDraw->width / 2,
                           (float)texToDraw->height / 2};
 
-        DrawRectangleRec(b.GetHitbox(), GREEN);
         DrawTexturePro(*texToDraw, source, dest, origin, rotation, WHITE);
     }
+}
+
+void BulletManager::Clear() {
+    bullets.clear();
 }

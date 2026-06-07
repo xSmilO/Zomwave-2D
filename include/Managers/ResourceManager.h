@@ -20,6 +20,8 @@ class ResourceManager {
     Texture2D texMp5Shoot;
     Texture2D texMp5Reload;
 
+    Texture2D texShotgunShoot;
+
     Texture2D texCoin;
     Texture2D texHealthPotion;
 
@@ -46,6 +48,9 @@ class ResourceManager {
     Sound sfxAk47Shoot;
     Sound sfxAk47Reload;
 
+    Sound sfxShotgunShoot;
+    Sound sfxShotgunReload;
+
     Sound sfxBuy;
     Sound sfxCoinPickup;
     Sound sfxPotionUse;
@@ -54,6 +59,8 @@ class ResourceManager {
 
     Sound sfxBowShoot;
     std::vector<Sound> sfxZombieSounds;
+    std::vector<Sound> sfxBossSounds;
+    std::vector<Sound> sfxPlayerHurtSounds;
 
     Music bgmMenu;
     std::vector<Music> bgmGameTracks;
@@ -70,6 +77,8 @@ class ResourceManager {
 
         texMp5Shoot = LoadTexture("../assets/mp5_shoot.png");
         texMp5Reload = LoadTexture("../assets/mp5_reload.png");
+
+        texShotgunShoot = LoadTexture("../assets/shotgun_shoot.png");
 
         texZombie = LoadTexture("../assets/zombie_walk.png");
         texSkeleton = LoadTexture("../assets/skeleton_walk.png");
@@ -102,12 +111,24 @@ class ResourceManager {
         sfxPotionUse = LoadSound("../assets/audio/potion_use.wav");
         sfxPlayerStep = LoadSound("../assets/audio/player_step.wav");
         sfxBossDrink = LoadSound("../assets/audio/drinking.wav");
+        sfxShotgunShoot = LoadSound("../assets/audio/shotgun_shoot.wav");
+        sfxShotgunReload = LoadSound("../assets/audio/shotgun_reload.wav");
 
         sfxBowShoot = LoadSound("../assets/audio/bow_shoot.mp3");
         sfxZombieSounds.push_back(LoadSound("../assets/audio/zombie_1.mp3"));
         sfxZombieSounds.push_back(LoadSound("../assets/audio/zombie_2.mp3"));
         sfxZombieSounds.push_back(LoadSound("../assets/audio/zombie_3.mp3"));
         sfxZombieSounds.push_back(LoadSound("../assets/audio/zombie_4.mp3"));
+
+        sfxBossSounds.push_back(LoadSound("../assets/audio/boss_1.wav"));
+        sfxBossSounds.push_back(LoadSound("../assets/audio/boss_2.wav"));
+        sfxBossSounds.push_back(LoadSound("../assets/audio/boss_3.wav"));
+        sfxBossSounds.push_back(LoadSound("../assets/audio/boss_4.wav"));
+        sfxBossSounds.push_back(LoadSound("../assets/audio/boss_5.wav"));
+
+        sfxPlayerHurtSounds.push_back(LoadSound("../assets/audio/player_hurt1.wav"));
+        sfxPlayerHurtSounds.push_back(LoadSound("../assets/audio/player_hurt2.wav"));
+        sfxPlayerHurtSounds.push_back(LoadSound("../assets/audio/player_hurt3.wav"));
 
         bgmMenu = LoadMusicStream("../assets/music/main_menu_music.mp3");
         bgmMenu.looping = true;
@@ -127,6 +148,15 @@ class ResourceManager {
         Music track4 = LoadMusicStream("../assets/music/game_track4.mp3");
         track4.looping = false;
         bgmGameTracks.push_back(track4);
+
+        Music track5 = LoadMusicStream("../assets/music/game_track5.mp3");
+        track5.looping = false;
+        bgmGameTracks.push_back(track5);
+
+        Music track6 = LoadMusicStream("../assets/music/game_track6.mp3");
+        track6.looping = false;
+        bgmGameTracks.push_back(track6);
+
     }
 
     void UnloadAll() {
@@ -150,6 +180,7 @@ class ResourceManager {
         UnloadTexture(texBossAttack);
         UnloadTexture(texBossIdle);
         UnloadTexture(texBottle);
+        UnloadTexture(texShotgunShoot);
 
         UnloadSound(sfxUIClick);
         UnloadSound(sfxGlockShoot);
@@ -162,7 +193,8 @@ class ResourceManager {
         UnloadSound(sfxCoinPickup);
         UnloadSound(sfxPotionUse);
         UnloadSound(sfxPlayerStep);
-
+        UnloadSound(sfxShotgunShoot);
+        UnloadSound(sfxShotgunReload);
         UnloadSound(sfxBowShoot);
 
         UnloadMusicStream(bgmMenu);
@@ -172,6 +204,14 @@ class ResourceManager {
 
         for (size_t i = 0; i < sfxZombieSounds.size(); ++i) {
             UnloadSound(sfxZombieSounds[i]);
+        }
+
+        for (size_t i = 0; i < sfxBossSounds.size(); ++i) {
+            UnloadSound(sfxBossSounds[i]);
+        }
+
+        for (size_t i = 0; i < sfxPlayerHurtSounds.size(); ++i) {
+            UnloadSound(sfxPlayerHurtSounds[i]);
         }
     }
 };

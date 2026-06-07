@@ -36,6 +36,13 @@ void Boss::Update(float dt, Vector2 playerPos, Map *map) {
 
     if (attackTimer > 0.0f)
         attackTimer -= dt;
+
+    ambientTimer -= dt;
+    if (ambientTimer <= 0.0f) {
+        audioManager->PlayBossAmbient(position, playerPos);
+        ambientTimer = GetRandomValue(300, 800) / 100.0f;
+    }
+
     animator.Update(dt);
 
     Vector2 dir = Vector2Subtract(playerPos, position);

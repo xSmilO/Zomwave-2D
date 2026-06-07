@@ -18,6 +18,9 @@ struct PlayerStats {
 
     std::vector<int> speedUpgradeCost;
     std::vector<float> speedLevels;
+    
+    std::vector<int> visionUpgradeCost;
+    std::vector<float> visionLevels;
 };
 
 struct WeaponStats {
@@ -27,6 +30,7 @@ struct WeaponStats {
     std::vector<int> maxAmmo;
     std::vector<float> spread;
     std::vector<float> fireCooldown;
+    std::vector<float> pellets;
 };
 
 struct EnemyStats {
@@ -40,21 +44,22 @@ struct EnemyStats {
 };
 
 struct WaveStats {
+    int currentWave;
     float baseSpawnInterval = 2.0f;
     float waveMultiplier = 0.1f;
     float minSpawnInterval = 0.3f;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WaveStats, baseSpawnInterval, waveMultiplier,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WaveStats, currentWave, baseSpawnInterval, waveMultiplier,
                                    minSpawnInterval)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlayerStats, coins, potionBaseCost,
                                    potionFlatIncrease, potionMultiplier,
                                    healthUpgradeCost, maxHealthLevels,
-                                   speedUpgradeCost, speedLevels)
+                                   speedUpgradeCost, speedLevels, visionUpgradeCost, visionLevels)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WeaponStats, unlockCost, upgradeCost, damage,
-                                   maxAmmo, spread, fireCooldown)
+                                   maxAmmo, spread, fireCooldown, pellets)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnemyStats, health, speed, damage,
                                    attackCooldown, killReward, dropReward)

@@ -116,8 +116,6 @@ void Skeleton::Update(float dt, Vector2 playerPos, Map *map) {
 }
 
 void Skeleton::Draw() {
-    Rectangle destRec = GetHitbox();
-    DrawRectangleRec(destRec, RED);
     animator.Draw(
         {position.x, position.y - (height / 2), width * 2, height * 2}, false);
 

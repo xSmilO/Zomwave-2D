@@ -46,6 +46,7 @@ struct Weapon {
         this->spread = stats.spread[idx];
         this->fireCooldown = stats.fireCooldown[idx];
         this->upgradeCost = stats.upgradeCost[idx];
+        this->pellets = stats.pellets[idx];
 
         this->currentAmmo = this->maxAmmo;
     }

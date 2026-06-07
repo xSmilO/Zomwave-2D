@@ -7,7 +7,8 @@ UIManager::UIManager(Texture2D *texHealthPotion, Texture2D *texCoin) {
 }
 
 void UIManager::DrawHUD(Player *player, WaveManager *waveManager,
-                        EnemyManager *enemyManager, int screenWidth) {
+                        EnemyManager *enemyManager, int screenWidth,
+                        int screenHeight) {
     if (!player || !waveManager || !enemyManager)
         return;
 
@@ -16,6 +17,7 @@ void UIManager::DrawHUD(Player *player, WaveManager *waveManager,
     DrawWave(waveManager, screenWidth);
     DrawEnemies(enemyManager, screenWidth);
     DrawLootInfo(player);
+    DrawAmmunition(player, screenWidth, screenHeight);
 }
 
 void UIManager::DrawWave(WaveManager *waveManager, int screenWidth) {
@@ -85,4 +87,35 @@ void UIManager::DrawLootInfo(Player *player) {
     DrawTextureV(*texCoin, {10, 80}, WHITE);
     DrawText(TextFormat("x %d", player->coins), 32, 80, 20, BLACK);
     DrawText(TextFormat("x %d", player->coins), 30, 78, 20, WHITE);
+}
+
+void UIManager::DrawAmmunition(Player *player, int screenWidth,
+                               int screenHeight) {
+    Weapon *activeWep = player->GetActiveWeapon();
+
+    if (activeWep != nullptr) {
+        int currentAmmo = activeWep->currentAmmo;
+        int maxAmmo = activeWep->maxAmmo;
+
+        const char *ammoText = TextFormat("%d / %d", currentAmmo, maxAmmo);
+
+        Color ammoColor = WHITE;
+        if (currentAmmo == 0) {
+            ammoColor = RED;
+        } else if (currentAmmo <= maxAmmo / 4) {
+            ammoColor = ORANGE;
+        }
+
+        float panelHeight = 50.0f;
+
+        float posY = screenHeight - panelHeight - 20.0f;
+
+        int nameFontSize = 20;
+        int nameWidth = MeasureText(activeWep->name.c_str(), nameFontSize);
+        DrawText(activeWep->name.c_str(), screenWidth - nameWidth - 20.0f,
+                 posY - 25.0f, nameFontSize, LIGHTGRAY);
+        int fontSize = 30;
+        int ammoWidth = MeasureText(ammoText, fontSize);
+        DrawText(ammoText, screenWidth - ammoWidth - 20.0f, (int)posY + 10, fontSize, ammoColor);
+    }
 }

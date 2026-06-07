@@ -31,32 +31,32 @@ Game::Game() {
     InitAudioDevice();
     SetExitKey(KEY_NULL);
 
-    balance = ConfigManager::LoadBalance("config.json");
+    gameBalance = ConfigManager::LoadBalance("config.json");
 
     resources = new ResourceManager();
     resources->LoadAll();
 
     audioManager.Init(resources);
 
-    coinManager =
-        new CoinManager();
-
     uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin);
 
-    bulletManager =
-        new BulletManager(&resources->texBullet, &resources->texArrow, &resources->texBottle);
+    bulletManager = new BulletManager(
+        &resources->texBullet, &resources->texArrow, &resources->texBottle);
     enemyManager = new EnemyManager(resources, bulletManager, &audioManager);
     waveManager = new WaveManager();
+    waveManager->Init(gameBalance);
 
+    lightMask = LoadRenderTexture(virtualWidth, virtualHeight);
     target = LoadRenderTexture(virtualWidth, virtualHeight);
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
     levelMap = new Map();
-    player = new Player(resources, &audioManager, &balance);
+    player = new Player(resources, &audioManager, &gameBalance);
 
     SpawnPlayer();
     ConfigManager::LoadSettings(audioManager, currentFpsIndex, fpsOptions);
     audioManager.PlayMenuMusic();
+    LoadSave();
 }
 
 Game::~Game() {
@@ -68,6 +68,7 @@ Game::~Game() {
     delete player;
     delete levelMap;
     UnloadRenderTexture(target);
+    UnloadRenderTexture(lightMask);
     audioManager.CleanUp();
     CloseWindow();
 }
@@ -78,6 +79,12 @@ void Game::Draw() {
     int padding = 30; // set padding to avoid scrollbar and browser edge overlap
     SetWindowSize(getBrowserWidth() - padding, getBrowserHeight() - padding);
 #endif
+    if (currentState == GameState::PLAYING) {
+        DrawLights();
+    }
+
+    BeginTextureMode(target);
+    ClearBackground(RAYWHITE);
 
     switch (currentState) {
     case GameState::MAIN_MENU:
@@ -91,6 +98,9 @@ void Game::Draw() {
         break;
     case GameState::PAUSED:
         DrawPaused();
+        break;
+    case GameState::GAME_OVER:
+        DrawGameOver();
         break;
     case GameState::EXIT:
         break;
@@ -127,9 +137,6 @@ void Game::Update() {
     float dt = GetFrameTime();
 
     audioManager.UpdateMusic();
-
-    BeginTextureMode(target);
-    ClearBackground(RAYWHITE);
 
     switch (currentState) {
     case GameState::MAIN_MENU:
@@ -171,6 +178,18 @@ void Game::Run() {
 void Game::UpdateMainMenu(float dt) {}
 
 void Game::UpdatePlaying(float dt) {
+    if (!player->isAlive) {
+        int reachedWave = waveManager->GetCurrentWave();
+
+        if (reachedWave > saveData.highScoreWave) {
+            saveData.highScoreWave = reachedWave;
+            SaveGame();
+        }
+
+        currentState = GameState::GAME_OVER;
+        return;
+    }
+
     if (IsKeyPressed(KEY_ESCAPE)) {
         currentState = GameState::PAUSED;
         audioManager.PauseMusic();
@@ -187,9 +206,10 @@ void Game::UpdatePlaying(float dt) {
 
     bulletManager->Update(dt, levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
-    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap, balance);
-    enemyManager->Update(dt, player, levelMap, bulletManager, coinManager);
-    coinManager->Update(dt, player, &audioManager);
+    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap,
+                        gameBalance);
+    enemyManager->Update(dt, player, levelMap, bulletManager, &coinManager);
+    coinManager.Update(dt, player, &audioManager);
 
     for (auto &bullet : bulletManager->bullets) {
         if (!bullet.active)
@@ -260,9 +280,16 @@ void Game::DrawMainMenu() {
         audioManager.PlayUIClick();
         currentState = GameState::EXIT;
     }
+
+    const char *highScoreText =
+        TextFormat("HIGH SCORE (FALA): %d", saveData.highScoreWave);
+    int hsWidth = MeasureText(highScoreText, 20);
+    DrawText(highScoreText, virtualWidth - hsWidth - 20, virtualHeight - 40, 20,
+             GOLD);
 }
 
 void Game::DrawPlaying() {
+
     DrawTexturePro(resources->texSkyBox,
                    {0, 0, (float)resources->texSkyBox.width,
                     (float)resources->texSkyBox.height},
@@ -271,17 +298,28 @@ void Game::DrawPlaying() {
 
     BeginMode2D(camera);
     levelMap->DrawBackground();
-    coinManager->Draw(resources->texCoin);
+    coinManager.Draw(resources->texCoin);
     enemyManager->Draw();
     player->Draw();
     levelMap->DrawForeground();
-    bulletManager->Draw();
-
     EndMode2D();
 
-    uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
+    BeginBlendMode(BLEND_MULTIPLIED);
 
-    shopManager.DrawShop(player, resources, &audioManager, balance);
+    Rectangle sourceRec = {0.0f, 0.0f, (float)lightMask.texture.width,
+                           -(float)lightMask.texture.height};
+
+    DrawTextureRec(lightMask.texture, sourceRec, {0.0f, 0.0f}, WHITE);
+
+    EndBlendMode();
+
+    BeginMode2D(camera);
+    bulletManager->Draw();
+    EndMode2D();
+
+    uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width,
+                       target.texture.height);
+    shopManager.DrawShop(player, resources, &audioManager, gameBalance);
 }
 
 void Game::DrawSettings() {
@@ -378,7 +416,91 @@ void Game::DrawPaused() {
     }
 }
 
+void Game::DrawLights() {
+    BeginTextureMode(lightMask);
+    ClearBackground(Color{0, 0, 0, 255});
+    BeginBlendMode(BLEND_ADDITIVE);
+    BeginMode2D(camera);
+
+    Color bulletColor;
+    DrawCircleGradient({player->GetPosition().x, player->GetPosition().y},
+                       player->visionRadius, Color{255, 255, 255, 255}, BLANK);
+
+    for (const auto &bullet : bulletManager->bullets) {
+        if (bullet.active) {
+            if (bullet.isEnemy) {
+                bulletColor = {0, 200, 0, 120};
+            } else {
+                bulletColor = {255, 200, 0, 150};
+            }
+            DrawCircleGradient(bullet.position, 60, bulletColor, BLANK);
+        }
+    }
+
+    for (const auto &coin : coinManager.coins) {
+
+        if (coin.active) {
+            DrawCircleGradient(coin.position, 20, {255, 200, 0, 150}, BLANK);
+        }
+    }
+
+    EndMode2D();
+    EndBlendMode();
+    EndTextureMode();
+}
+void Game::DrawGameOver() {
+    ClearBackground(Color{40, 0, 0, 255});
+
+    int titleFontSize = 80;
+    int titleWidth = MeasureText("ZGINALES!", titleFontSize);
+    DrawText("ZGINALES!", virtualWidth / 2 - titleWidth / 2,
+             virtualHeight / 2 - 150, titleFontSize, RED);
+
+    const char *statsText =
+        TextFormat("Dotarles do fali: %d", waveManager->GetCurrentWave());
+    int statsWidth = MeasureText(statsText, 30);
+    DrawText(statsText, virtualWidth / 2 - statsWidth / 2, virtualHeight / 2,
+             30, LIGHTGRAY);
+
+    int btnWidth = 300;
+    int btnHeight = 50;
+    float btnX = virtualWidth / 2 - btnWidth / 2;
+    float btnY = virtualHeight / 2 + 100;
+
+    if (GuiButton({btnX, btnY, (float)btnWidth, (float)btnHeight},
+                  "POWROT DO MENU")) {
+        currentState = GameState::MAIN_MENU;
+
+        player->InitStats();
+        coinManager.Clear();
+        bulletManager->Clear();
+        enemyManager->Clear();
+        waveManager->Init(gameBalance);
+
+        SpawnPlayer();
+    }
+}
+
 void Game::SpawnPlayer() {
     player->isAlive = true;
     player->SetPosition(levelMap->GetSpawnPoint());
+}
+
+void Game::LoadSave() {
+    std::ifstream file("save.json");
+    if (file.is_open()) {
+        nlohmann::json j;
+        file >> j;
+        saveData = j.get<SaveData>();
+        file.close();
+    }
+}
+
+void Game::SaveGame() {
+    std::ofstream file("save.json");
+    if (file.is_open()) {
+        nlohmann::json j = saveData;
+        file << j.dump(4);
+        file.close();
+    }
 }

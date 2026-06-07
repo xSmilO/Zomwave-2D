@@ -537,3 +537,33 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 endif()
+
+find_package(Doxygen)
+
+if (DOXYGEN_FOUND)
+    set(DOXYGEN_PROJECT_NAME "Zomwave 2D")
+    set(DOXYGEN_PROJECT_BRIEF "Dokumentacja silnika i mechanik gry")
+    
+    
+    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs)
+    
+    set(DOXYGEN_EXTRACT_ALL YES)  
+    set(DOXYGEN_RECURSIVE YES)    
+    set(DOXYGEN_GENERATE_HTML YES)
+    set(DOXYGEN_GENERATE_LATEX NO)
+    set(DOXYGEN_HAVE_DOT YES)
+    set(DOXYGEN_CALL_GRAPH YES)
+    set(DOXYGEN_EXTRACT_ALL YES)         
+    set(DOXYGEN_EXTRACT_PRIVATE YES)     
+    set(DOXYGEN_HIDE_UNDOC_MEMBERS NO)
+    set(DOXYGEN_HIDE_UNDOC_CLASSES NO)
+    set(DOXYGEN_EXTRACT_STATIC YES)
+
+    doxygen_add_docs(docs
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        COMMENT "Generating documentation with doxygen"
+    )
+else()
+    message(WARNING "Doxygen can't be found on this operating system!")
+endif()

@@ -69,9 +69,6 @@ void Zombie::Update(float dt, Vector2 playerPos, Map *map) {
 void Zombie::Draw() {
     if (!active)
         return;
-
-    Rectangle destRec = GetHitbox();
-    DrawRectangleRec(destRec, RED);
     animator.Draw(
         {position.x, position.y - (height / 2), width * 2, height * 2},
         texFlip);

@@ -7,7 +7,7 @@
 
 class WaveManager {
   private:
-    int currentWave = 1;
+    int currentWave;
     float waveTimer = 0.0f;
     float waveDuration = 60.0f;
     float globalTime = 0.0f;
@@ -18,6 +18,7 @@ class WaveManager {
     bool TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map);
 
   public:
+    void Init(const GameBalance& gb);
     void Update(float dt, EnemyManager *enemyManager, Vector2 playerPos,
                 Map *map, const GameBalance& gb);
 

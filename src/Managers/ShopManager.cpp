@@ -37,9 +37,9 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
 
     if (GuiWindowBox(windowBounds, "Sklep")) {
         isOpen = false;
+        audioManager->PlayUIClick();
     }
 
-    // --- DEFINIOWANIE MARGINESÓW (PADDINGU) ---
     float padding = 20.0f;
     float headerY = windowBounds.y + 40.0f;
     float startX = windowBounds.x + padding;
@@ -47,10 +47,16 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
     GuiLabel({startX, headerY, 200, 30},
              TextFormat("Kasa: $%d", player->coins));
 
-    // Zakładki (zaczynają się np. w połowie szerokości okna)
     float tabsX = windowBounds.x + (windowBounds.width / 2.0f);
+
+    int newTab = currentTab;
     GuiToggleGroup({tabsX, headerY, windowBounds.width / 4.0f - padding, 30},
-                   "Bronie;Postac i Przedmioty", &currentTab);
+                   "Bronie;Postac i Przedmioty", &newTab);
+
+    if (newTab != currentTab) {
+        audioManager->PlayUIClick();
+        currentTab = newTab;
+    }
 
     // =========================================================
     // ZAKŁADKA 0: BRONIE
@@ -78,13 +84,13 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
         float spacing = tileWidth + 20.0f;
 
         WeaponType types[4] = {WeaponType::GLOCK, WeaponType::MP5,
-                               WeaponType::AK47, WeaponType::AK47};
-        std::string names[4] = {"Pistolet", "MP5", "AK-47", "Shotgun"};
+                               WeaponType::SHOTGUN, WeaponType::AK47};
+        std::string names[4] = {"Pistolet", "MP5", "Shotgun", "AK-47"};
         Texture2D textures[4] = {
             resourceManager->texGlockShoot, resourceManager->texMp5Shoot,
-            resourceManager->texAk47Shoot, resourceManager->texAk47Shoot};
+            resourceManager->texShotgunShoot, resourceManager->texAk47Shoot};
         Rectangle texSource[4] = {
-            {18, 0, 30, 36}, {0, 0, 64, 36}, {0, 0, 80, 36}, {0, 0, 20, 20}};
+            {18, 0, 30, 36}, {0, 0, 64, 36}, {0, 48, 128, 128}, {0, 0, 80, 36}};
 
         for (int i = 0; i < 4; i++) {
 
@@ -186,10 +192,13 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
     else if (currentTab == 1) {
         int currentPotionCost = balance.player.potionBaseCost;
         if (player->potionsBought > 0) {
-            currentPotionCost += (int)(balance.player.potionFlatIncrease * (player->potionsBought * balance.player.potionMultiplier));
+            currentPotionCost += (int)(balance.player.potionFlatIncrease *
+                                       (player->potionsBought *
+                                        balance.player.potionMultiplier));
         }
 
-        if (GuiButton({120, 140, 300, 40}, TextFormat("Kup Miksture [$%d]", currentPotionCost))) {
+        if (GuiButton({120, 140, 300, 40},
+                      TextFormat("Kup Miksture [$%d]", currentPotionCost))) {
             if (player->coins >= currentPotionCost) {
                 audioManager->PlayBuy();
                 player->coins -= currentPotionCost;
@@ -198,22 +207,29 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
             }
         }
 
-        bool hpMaxed = (player->maxHealthLevel >= balance.player.maxHealthLevels.size() - 1);
-        
+        bool hpMaxed = (player->maxHealthLevel >=
+                        balance.player.maxHealthLevels.size() - 1);
+
         if (!hpMaxed) {
-            int hpCost = balance.player.healthUpgradeCost[player->maxHealthLevel];
-            float nextHpValue = balance.player.maxHealthLevels[player->maxHealthLevel + 1];
+            int hpCost =
+                balance.player.healthUpgradeCost[player->maxHealthLevel];
+            float nextHpValue =
+                balance.player.maxHealthLevels[player->maxHealthLevel + 1];
             float hpBonus = nextHpValue - player->maxHealth;
-            
-            if (GuiButton({120, 190, 300, 40}, TextFormat("Ulepsz Max HP (+%.0f) [$%d]", hpBonus, hpCost))) {
+
+            if (GuiButton({120, 190, 300, 40},
+                          TextFormat("Ulepsz Max HP (+%.0f) [$%d]", hpBonus,
+                                     hpCost))) {
                 if (player->coins >= hpCost) {
                     audioManager->PlayBuy();
                     player->coins -= hpCost;
                     player->maxHealthLevel++;
-                    
-                    // Zwiększamy Max HP z JSON-a i leczymy gracza o dodaną wartość
-                    player->maxHealth = balance.player.maxHealthLevels[player->maxHealthLevel];
-                    player->health += hpBonus; 
+
+                    // Zwiększamy Max HP z JSON-a i leczymy gracza o dodaną
+                    // wartość
+                    player->maxHealth =
+                        balance.player.maxHealthLevels[player->maxHealthLevel];
+                    player->health += hpBonus;
                 }
             }
         } else {
@@ -222,20 +238,26 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
             GuiEnable();
         }
 
-        bool speedMaxed = (player->speedLevel >= balance.player.speedLevels.size() - 1);
-        
+        bool speedMaxed =
+            (player->speedLevel >= balance.player.speedLevels.size() - 1);
+
         if (!speedMaxed) {
             int speedCost = balance.player.speedUpgradeCost[player->speedLevel];
-            float nextSpeedValue = balance.player.speedLevels[player->speedLevel + 1];
-            float speedBonus = nextSpeedValue - player->speed; // Ile zyskujemy na tym levelu
-            
-            if (GuiButton({120, 240, 300, 40}, TextFormat("Lepsze Buty (+%.0f SPD) [$%d]", speedBonus, speedCost))) {
+            float nextSpeedValue =
+                balance.player.speedLevels[player->speedLevel + 1];
+            float speedBonus =
+                nextSpeedValue - player->speed; // Ile zyskujemy na tym levelu
+
+            if (GuiButton({120, 240, 300, 40},
+                          TextFormat("Lepsze Buty (+%.0f SPD) [$%d]",
+                                     speedBonus, speedCost))) {
                 if (player->coins >= speedCost) {
                     audioManager->PlayBuy();
                     player->coins -= speedCost;
                     player->speedLevel++;
-                    
-                    player->speed = balance.player.speedLevels[player->speedLevel];
+
+                    player->speed =
+                        balance.player.speedLevels[player->speedLevel];
                 }
             }
         } else {
@@ -244,7 +266,33 @@ void ShopManager::DrawShop(Player *player, ResourceManager *resourceManager,
             GuiEnable();
         }
 
-        // Granaty w przyszłości wrzucisz pod współrzędną Y: 290
+        bool visionMaxed =
+            (player->visionLevel >= balance.player.visionLevels.size() - 1);
+
+        if (!visionMaxed) {
+            int visionCost =
+                balance.player.visionUpgradeCost[player->visionLevel];
+            float nextVisionValue =
+                balance.player.visionLevels[player->visionLevel + 1];
+            float visionBonus = nextVisionValue - player->visionRadius;
+
+            if (GuiButton({120, 290, 300, 40},
+                          TextFormat("Lepsza Latarka (+%.0f) [$%d]",
+                                     visionBonus, visionCost))) {
+                if (player->coins >= visionCost) {
+                    audioManager->PlayBuy();
+                    player->coins -= visionCost;
+                    player->visionLevel++;
+
+                    player->visionRadius =
+                        balance.player.visionLevels[player->visionLevel];
+                }
+            }
+        } else {
+            GuiDisable();
+            GuiButton({120, 290, 300, 40}, "Lepsza Latarka [MAX LVL]");
+            GuiEnable();
+        }
     }
 }
 

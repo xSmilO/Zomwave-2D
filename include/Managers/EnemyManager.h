@@ -28,6 +28,7 @@ class EnemyManager {
     void Update(float dt, Player *player, Map *map,
                 BulletManager *bulletManager, CoinManager *coinManager);
     void Draw();
+    void Clear();
 
     std::unique_ptr<Enemy> CreateZombie(const GameBalance& gb);
     std::unique_ptr<Enemy> CreateSkeleton(const GameBalance& gb);

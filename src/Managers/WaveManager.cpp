@@ -1,4 +1,5 @@
 #include "Managers/WaveManager.h"
+#include "raylib.h"
 #include "raymath.h"
 
 bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
@@ -41,7 +42,9 @@ void WaveManager::Update(float dt, EnemyManager *enemyManager,
         waveTimer = 0.0f;
     }
 
-    float currentSpawnInterval = gb.waves.baseSpawnInterval / (1.0f + (currentWave * gb.waves.waveMultiplier));
+    float currentSpawnInterval =
+        gb.waves.baseSpawnInterval /
+        (1.0f + (currentWave * gb.waves.waveMultiplier));
 
     if (currentSpawnInterval < gb.waves.minSpawnInterval) {
         currentSpawnInterval = gb.waves.minSpawnInterval;
@@ -80,4 +83,11 @@ void WaveManager::Update(float dt, EnemyManager *enemyManager,
             }
         }
     }
+}
+
+void WaveManager::Init(const GameBalance& gb) {
+    currentWave = gb.waves.currentWave;
+    waveTimer = 0.0f;
+    waveDuration = 60.0f;
+    globalTime = 0.0f;
 }

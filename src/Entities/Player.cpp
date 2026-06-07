@@ -152,6 +152,10 @@ void Player::CalculateWeaponPos(Vector2 mousePosition) {
 
     float orbitRadius = (width / 3.0f) + (wp->width / 2.0f);
 
+    if (wp->type == WeaponType::SHOTGUN) {
+        orbitRadius = 45.0f;
+    }
+
     weaponPosition.x = center.x + cosf(angleRad) * orbitRadius;
     weaponPosition.y = center.y + sinf(angleRad) * orbitRadius;
     weaponRotation = angleRad * (180.0f / PI);
@@ -160,17 +164,20 @@ void Player::CalculateWeaponPos(Vector2 mousePosition) {
 void Player::TakeDamage(float damage) {
     if (invincibilityTimer <= 0.0f) {
         health -= damage;
+        audioManager->PlayPlayerHurt();
         invincibilityTimer = invincibilityDuration;
-    }
 
-    if (health < 0 && potions <= 0) {
-        isAlive = false;
-    }
+        if (health <= 0.0f) {
 
-    if (health < 0) {
-        potions--;
-        health += 40;
-        audioManager->PlayPotionUse();
+            if (potions > 0) {
+                potions--;
+                health = 40.0f;
+                audioManager->PlayPotionUse();
+            } else {
+                health = 0.0f;
+                isAlive = false;
+            }
+        }
     }
 }
 
@@ -258,6 +265,30 @@ void Player::InitializeArsenal() {
 
     ak47->animator.SetState("IDLE");
 
+    arsenal.push_back(std::make_unique<Weapon>());
+    Weapon *shotgun = arsenal.back().get();
+    shotgun->name = "Shotgun";
+    shotgun->type = WeaponType::SHOTGUN;
+    shotgun->width = 128;
+    shotgun->height = 128;
+    shotgun->isUnlocked = false;
+    shotgun->barrelOffest = {32, -4};
+    shotgun->LoadStatsFromBalance(*gameBalance);
+
+    shootFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0},
+                     {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}};
+    reloadFramePos = {{10, 0}, {9, 0}, {8, 0}, {7, 0}, {6, 0}};
+
+    std::reverse(reloadFramePos.begin(), reloadFramePos.end());
+
+    shotgun->animator.AddAnimation("IDLE", &resourceManager->texShotgunShoot,
+                                   {128, 128}, 0, {{0, 0}}, false);
+    shotgun->animator.AddAnimation("SHOOT", &resourceManager->texShotgunShoot,
+                                   {128, 128}, 42, shootFramePos, false);
+    shotgun->animator.AddAnimation("RELOAD", &resourceManager->texShotgunShoot,
+                                   {128, 128}, 8, reloadFramePos, false);
+
+    shotgun->animator.SetState("IDLE");
     currentWeaponIndex = 0;
 }
 
@@ -266,65 +297,73 @@ Weapon *Player::GetActiveWeapon() { return arsenal[currentWeaponIndex].get(); }
 void Player::UpdateWeapon(float dt, Vector2 mousePos,
                           BulletManager *bulletManager) {
     CalculateWeaponPos(mousePos);
-
     Weapon *wp = GetActiveWeapon();
-
     wp->animator.Update(dt);
 
     if (shootTimer > 0.0f) {
         shootTimer -= dt;
     }
 
-    if (wp->state == WeaponState::RELOADING) {
+    bool triesToShoot =
+        IsMouseButtonDown(MOUSE_LEFT_BUTTON) && shootTimer <= 0.0f;
+
+    bool canShoot = wp->type == WeaponType::SHOTGUN ||
+                    (wp->state != WeaponState::RELOADING);
+
+    if (triesToShoot && wp->currentAmmo > 0 && canShoot) {
+        float angleRad = weaponRotation * (PI / 180.0f);
+        Vector2 localBarrel = wp->barrelOffest;
+        Vector2 rotateOffset = Vector2Rotate(localBarrel, angleRad);
+        Vector2 barrelEnd = Vector2Add(weaponPosition, rotateOffset);
+
+        for (int i = 0; i < wp->pellets; ++i) {
+            float randomOffset =
+                GetRandomValue(-wp->spread * 10, wp->spread * 10) / 10.0f;
+            float finalAngleRad = angleRad + (randomOffset * DEG2RAD);
+            Vector2 finalDirection = {cosf(finalAngleRad), sinf(finalAngleRad)};
+            Vector2 bulletTarget =
+                Vector2Add(barrelEnd, Vector2Scale(finalDirection, 1000));
+
+            bulletManager->Shoot(barrelEnd, bulletTarget, wp->damage,
+                                 BulletType::BULLET, 800, randomOffset, false);
+        }
+
+        wp->currentAmmo--;
+        shootTimer = wp->fireCooldown;
+
+        wp->state = WeaponState::SHOOTING;
+        wp->animator.SetState("SHOOT");
+        wp->animator.ResetAnimation();
+
+        audioManager->PlayShoot(wp->type);
+    } else if (wp->state == WeaponState::RELOADING) {
         if (wp->animator.IsAnimationFinished()) {
-            wp->currentAmmo = wp->maxAmmo;
-            wp->state = WeaponState::IDLE;
-            wp->animator.SetState("IDLE");
+
+            if (wp->type == WeaponType::SHOTGUN) {
+                wp->currentAmmo++;
+
+                if (wp->currentAmmo < wp->maxAmmo) {
+                    wp->animator.ResetAnimation();
+                    audioManager->PlayReload(wp->type);
+                } else {
+                    wp->state = WeaponState::IDLE;
+                    wp->animator.SetState("IDLE");
+                }
+            } else {
+                wp->currentAmmo = wp->maxAmmo;
+                wp->state = WeaponState::IDLE;
+                wp->animator.SetState("IDLE");
+            }
         }
     } else {
-        if (IsKeyPressed(KEY_R) && wp->currentAmmo < wp->maxAmmo) {
+        if ((IsKeyPressed(KEY_R) && wp->currentAmmo < wp->maxAmmo) ||
+            (triesToShoot && wp->currentAmmo == 0)) {
+
             wp->state = WeaponState::RELOADING;
             wp->animator.SetState("RELOAD");
             wp->animator.ResetAnimation();
             audioManager->PlayReload(wp->type);
-        } else if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && shootTimer <= 0.0f) {
-            if (wp->currentAmmo > 0) {
-                float angleRad = weaponRotation * (PI / 180.0f);
-                Vector2 localBarrel = wp->barrelOffest;
 
-                Vector2 rotateOffset = Vector2Rotate(localBarrel, angleRad);
-
-                Vector2 barrelEnd = Vector2Add(weaponPosition, rotateOffset);
-
-                for (int i = 0; i < wp->pellets; ++i) {
-                    float randomOffset =
-                        GetRandomValue(-wp->spread * 10, wp->spread * 10) /
-                        10.0f;
-
-                    float finalAngleRad = angleRad + (randomOffset * DEG2RAD);
-                    Vector2 finalDirection = {cosf(finalAngleRad),
-                                              sinf(finalAngleRad)};
-                    Vector2 bulletTarget = Vector2Add(
-                        barrelEnd, Vector2Scale(finalDirection, 1000));
-
-                    bulletManager->Shoot(barrelEnd, bulletTarget, wp->damage,
-                                         BulletType::BULLET, 800, randomOffset,
-                                         false);
-                }
-
-                wp->currentAmmo--;
-                shootTimer = wp->fireCooldown;
-                wp->state = WeaponState::SHOOTING;
-                wp->animator.SetState("SHOOT");
-                wp->animator.ResetAnimation();
-
-                audioManager->PlayShoot(wp->type);
-            } else {
-                wp->state = WeaponState::RELOADING;
-                wp->animator.SetState("RELOAD");
-                wp->animator.ResetAnimation();
-                audioManager->PlayReload(wp->type);
-            }
         } else if (wp->state == WeaponState::SHOOTING) {
             if (wp->animator.IsAnimationFinished()) {
                 wp->state = WeaponState::IDLE;
@@ -364,4 +403,6 @@ void Player::InitStats() {
     this->speed = gameBalance->player.speedLevels[0];
 
     this->potionsBought = 0;
+    this->visionLevel = 0;
+    this->visionRadius = gameBalance->player.visionLevels[0];
 }

@@ -19,6 +19,7 @@ void AudioManager::Init(ResourceManager *resManager) {
     RegisterWeaponSound(WeaponType::GLOCK, resources->sfxGlockShoot);
     RegisterWeaponSound(WeaponType::MP5, resources->sfxMP5Shoot);
     RegisterWeaponSound(WeaponType::AK47, resources->sfxAk47Shoot);
+    RegisterWeaponSound(WeaponType::SHOTGUN, resources->sfxShotgunShoot);
     RegisterWeaponSound(WeaponType::BOW, resources->sfxBowShoot);
 
     InitializePools();
@@ -34,6 +35,17 @@ void AudioManager::InitializePools() {
         }
 
         zombieRoarPools.push_back(pool);
+    }
+
+    for (Sound baseSound : resources->sfxBossSounds) {
+        SoundPool pool;
+        pool.currentIndex = 0;
+
+        for (int i = 0; i < SoundPool::MAX_ALIASES; i++) {
+            pool.aliases[i] = LoadSoundAlias(baseSound);
+        }
+
+        bossRoarPools.push_back(pool);
     }
 
     bossDrink.currentIndex = 0;
@@ -76,6 +88,9 @@ void AudioManager::PlayReload(WeaponType type) {
         break;
     case WeaponType::AK47:
         soundToPlay = resources->sfxAk47Reload;
+        break;
+    case WeaponType::SHOTGUN:
+        soundToPlay = resources->sfxShotgunReload;
         break;
     default:
         return;
@@ -214,12 +229,40 @@ void AudioManager::PlayPlayerStep() {
     PlaySound(resources->sfxPlayerStep);
 }
 
+void AudioManager::PlayPlayerHurt() {
+    if (resources->sfxPlayerHurtSounds.empty())
+        return;
+
+    int randomSoundIndex =
+        GetRandomValue(0, resources->sfxPlayerHurtSounds.size() - 1);
+
+    Sound &soundToPlay = resources->sfxPlayerHurtSounds[randomSoundIndex];
+
+    SetSoundVolume(soundToPlay, sfxVolume);
+    PlaySound(soundToPlay);
+}
+
 void AudioManager::PlayZombieAmbient(Vector2 enemyPos, Vector2 playerPos) {
     if (zombieRoarPools.empty())
         return;
 
     int randomSoundIndex = GetRandomValue(0, zombieRoarPools.size() - 1);
     SoundPool &selectedPool = zombieRoarPools[randomSoundIndex];
+
+    Sound &roarToPlay = selectedPool.aliases[selectedPool.currentIndex];
+
+    selectedPool.currentIndex =
+        (selectedPool.currentIndex + 1) % SoundPool::MAX_ALIASES;
+
+    PlaySpatialSound(roarToPlay, enemyPos, playerPos);
+}
+
+void AudioManager::PlayBossAmbient(Vector2 enemyPos, Vector2 playerPos) {
+    if (bossRoarPools.empty())
+        return;
+
+    int randomSoundIndex = GetRandomValue(0, bossRoarPools.size() - 1);
+    SoundPool &selectedPool = bossRoarPools[randomSoundIndex];
 
     Sound &roarToPlay = selectedPool.aliases[selectedPool.currentIndex];
 

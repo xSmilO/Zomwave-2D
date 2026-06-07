@@ -49,3 +49,5 @@ void CoinManager::Draw(Texture2D coinTexture) {
         DrawTextureV(coinTexture, drawPos, WHITE);
     }
 }
+
+void CoinManager::Clear() { coins.clear(); }

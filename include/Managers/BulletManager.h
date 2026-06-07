@@ -36,4 +36,5 @@ class BulletManager {
                BulletType bulletType, float speed, float spreadAngle, bool isEnemy);
     void Update(float dt, Map *map);
     void Draw();
+    void Clear();
 };

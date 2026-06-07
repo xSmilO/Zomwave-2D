@@ -33,6 +33,9 @@ void EnemyManager::Update(float dt, Player *player, Map *map,
             if (bullet.active && !bullet.isEnemy) {
                 if (CheckCollisionCircleRec(bullet.position, bullet.radius,
                                             enemy->GetHitbox())) {
+                    if (enemy->active == false)
+                        break;
+
                     enemy->health -= bullet.damage;
                     bullet.active = false;
 
@@ -162,4 +165,12 @@ std::unique_ptr<Enemy> EnemyManager::CreateBoss(const GameBalance &gb) {
 
 void EnemyManager::AddEnemy(std::unique_ptr<Enemy> enemy) {
     enemies.push_back(std::move(enemy));
+}
+
+void EnemyManager::Clear() {
+    for (size_t i = 0; i < enemies.size(); i++) {
+        enemies[i].reset();
+    }
+
+    enemies.clear();
 }

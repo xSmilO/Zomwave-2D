@@ -11,6 +11,7 @@ class Boss : public Enemy {
   private:
     float attackRange = 200.0f;
     float stopRange = 150.0f;
+    float ambientTimer;
     Animator animator;
     bool texFlip;
 

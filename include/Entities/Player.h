@@ -47,6 +47,8 @@ class Player {
     int maxHealthLevel;
     int speedLevel;
     int potionsBought;
+    int visionLevel;
+    float visionRadius;
 
     Player(ResourceManager *resourceManager, AudioManager *audioManager, GameBalance* gm);
     void Update(float dt, Vector2 mousePosition, Map *map,
