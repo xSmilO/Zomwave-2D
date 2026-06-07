@@ -348,6 +348,11 @@ set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/config.json"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/config.json"
+)
 
 # Includes imgui source
 if(USE_IMGUI)

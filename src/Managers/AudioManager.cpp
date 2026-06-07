@@ -1,7 +1,6 @@
 #include "Managers/AudioManager.h"
 #include "raylib.h"
 #include "raymath.h"
-#include <cstdint>
 
 void AudioManager::RegisterWeaponSound(WeaponType type, Sound baseSound) {
     SoundPool pool;
@@ -35,6 +34,11 @@ void AudioManager::InitializePools() {
         }
 
         zombieRoarPools.push_back(pool);
+    }
+
+    bossDrink.currentIndex = 0;
+    for (int i = 0; i < SoundPool::MAX_ALIASES; i++) {
+        bossDrink.aliases[i] = LoadSoundAlias(resources->sfxBossDrink);
     }
 }
 
@@ -206,7 +210,7 @@ void AudioManager::PlaySpatialSound(Sound sound, Vector2 sourcePos,
 
 void AudioManager::PlayPlayerStep() {
     SetSoundVolume(resources->sfxPlayerStep, sfxVolume);
-    SetSoundPitch(resources->sfxPlayerStep, GetRandomValue(90, 110)/100.0f);
+    SetSoundPitch(resources->sfxPlayerStep, GetRandomValue(90, 110) / 100.0f);
     PlaySound(resources->sfxPlayerStep);
 }
 
@@ -223,4 +227,11 @@ void AudioManager::PlayZombieAmbient(Vector2 enemyPos, Vector2 playerPos) {
         (selectedPool.currentIndex + 1) % SoundPool::MAX_ALIASES;
 
     PlaySpatialSound(roarToPlay, enemyPos, playerPos);
+}
+
+void AudioManager::PlayBossDrink(Vector2 enemyPos, Vector2 playerPos) {
+    PlaySpatialSound(bossDrink.aliases[bossDrink.currentIndex], enemyPos,
+                     playerPos);
+    bossDrink.currentIndex =
+        (bossDrink.currentIndex + 1) % SoundPool::MAX_ALIASES;
 }

@@ -2,9 +2,10 @@
 #include "raylib.h"
 #include "raymath.h"
 
-BulletManager::BulletManager(Texture2D *texBullet, Texture2D *texArrow) {
+BulletManager::BulletManager(Texture2D *texBullet, Texture2D *texArrow, Texture2D *texBottle) {
     this->texBullet = texBullet;
     this->texArrow = texArrow;
+    this->texBottle = texBottle;
 }
 
 void BulletManager::Shoot(Vector2 startPos, Vector2 targetPos, float damage,
@@ -39,6 +40,10 @@ void BulletManager::Shoot(Vector2 startPos, Vector2 targetPos, float damage,
         b.radius = 6.0f;
     }
 
+    if (bulletType == BulletType::BOTTLE) {
+        b.radius = 8.0f;
+    }
+
     bullets.push_back(b);
 }
 
@@ -68,9 +73,14 @@ void BulletManager::Draw() {
             texToDraw = texBullet;
         } else if (b.type == BulletType::ARROW) {
             texToDraw = texArrow;
+        } else if (b.type == BulletType::BOTTLE) {
+            texToDraw = texBottle;
         }
 
         float rotation = atan2(b.velocity.y, b.velocity.x) * RAD2DEG;
+
+        if(b.type == BulletType::BOTTLE)
+            rotation += 90;
 
         Rectangle source = {0, 0, (float)texToDraw->width,
                             (float)texToDraw->height};

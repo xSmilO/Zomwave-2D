@@ -1,5 +1,6 @@
 #pragma once
 #include "Managers/AudioManager.h"
+#include "Managers/GameBalance.h"
 #include "raylib.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -38,5 +39,24 @@ class ConfigManager {
 
         std::ofstream file("settings.json");
         file << j.dump(4);
+    }
+
+    static GameBalance LoadBalance(const std::string& filepath = "balance.json") {
+        GameBalance balance;
+        std::ifstream file(filepath);
+
+        if(file.is_open()) {
+            try {
+                json j;
+                file >> j;
+                balance = j.get<GameBalance>();
+            } catch(const std::exception& e) {
+                printf("ERROR WHILE LOADING A CONFIG %s\n", e.what());
+            }
+        } else {
+            printf("Couldn't find a json");
+        }
+
+        return balance;
     }
 };

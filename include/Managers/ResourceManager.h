@@ -28,7 +28,12 @@ class ResourceManager {
 
     Texture2D texBow;
 
+    Texture2D texBossWalk;
+    Texture2D texBossAttack;
+    Texture2D texBossIdle;
+
     Texture2D texSkyBox;
+    Texture2D texBottle;
 
     Sound sfxUIClick;
 
@@ -45,6 +50,7 @@ class ResourceManager {
     Sound sfxCoinPickup;
     Sound sfxPotionUse;
     Sound sfxPlayerStep;
+    Sound sfxBossDrink;
 
     Sound sfxBowShoot;
     std::vector<Sound> sfxZombieSounds;
@@ -66,8 +72,10 @@ class ResourceManager {
         texMp5Reload = LoadTexture("../assets/mp5_reload.png");
 
         texZombie = LoadTexture("../assets/zombie_walk.png");
-
         texSkeleton = LoadTexture("../assets/skeleton_walk.png");
+        texBossWalk = LoadTexture("../assets/boss_walk.png");
+        texBossAttack = LoadTexture("../assets/boss_attack.png");
+        texBossIdle = LoadTexture("../assets/boss_idle.png");
 
         texCoin = LoadTexture("../assets/coin.png");
         texHealthPotion = LoadTexture("../assets/health_potion.png");
@@ -76,6 +84,7 @@ class ResourceManager {
         texArrow = LoadTexture("../assets/arrow.png");
         texBow = LoadTexture("../assets/bow.png");
         texSkyBox = LoadTexture("../assets/skybox.png");
+        texBottle = LoadTexture("../assets/bottle.png");
 
         sfxUIClick = LoadSound("../assets/audio/ui_click.mp3");
 
@@ -92,6 +101,7 @@ class ResourceManager {
         sfxCoinPickup = LoadSound("../assets/audio/coin_pickup.mp3");
         sfxPotionUse = LoadSound("../assets/audio/potion_use.wav");
         sfxPlayerStep = LoadSound("../assets/audio/player_step.wav");
+        sfxBossDrink = LoadSound("../assets/audio/drinking.wav");
 
         sfxBowShoot = LoadSound("../assets/audio/bow_shoot.mp3");
         sfxZombieSounds.push_back(LoadSound("../assets/audio/zombie_1.mp3"));
@@ -113,7 +123,7 @@ class ResourceManager {
         Music track3 = LoadMusicStream("../assets/music/game_track3.mp3");
         track1.looping = false;
         bgmGameTracks.push_back(track3);
-            
+
         Music track4 = LoadMusicStream("../assets/music/game_track4.mp3");
         track4.looping = false;
         bgmGameTracks.push_back(track4);
@@ -136,6 +146,10 @@ class ResourceManager {
         UnloadTexture(texArrow);
         UnloadTexture(texBow);
         UnloadTexture(texSkyBox);
+        UnloadTexture(texBossWalk);
+        UnloadTexture(texBossAttack);
+        UnloadTexture(texBossIdle);
+        UnloadTexture(texBottle);
 
         UnloadSound(sfxUIClick);
         UnloadSound(sfxGlockShoot);
@@ -148,7 +162,7 @@ class ResourceManager {
         UnloadSound(sfxCoinPickup);
         UnloadSound(sfxPotionUse);
         UnloadSound(sfxPlayerStep);
-        
+
         UnloadSound(sfxBowShoot);
 
         UnloadMusicStream(bgmMenu);
@@ -156,7 +170,7 @@ class ResourceManager {
             UnloadMusicStream(bgmGameTracks[i]);
         }
 
-        for(size_t i=0; i < sfxZombieSounds.size(); ++i) {
+        for (size_t i = 0; i < sfxZombieSounds.size(); ++i) {
             UnloadSound(sfxZombieSounds[i]);
         }
     }

@@ -16,6 +16,7 @@ class AudioManager {
 
     std::map<WeaponType, SoundPool> weaponPools;
     std::vector<SoundPool> zombieRoarPools;
+    SoundPool bossDrink;
     // Music *currentMusic = nullptr;
 
     void RegisterWeaponSound(WeaponType type, Sound baseSound);
@@ -46,6 +47,7 @@ class AudioManager {
     void PlayPlayerStep();
 
     void PlayZombieAmbient(Vector2 enemyPos, Vector2 playerPos);
+    void PlayBossDrink(Vector2 enemyPos, Vector2 playerPos);
 
     void SetMusicVolume(float volume);
     void SetSFXVolume(float volume);

@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Managers/BulletManager.h"
+#include "Managers/CoinManager.h"
 #include "Managers/ConfigManager.h"
 #include "Managers/EnemyManager.h"
 #include "Managers/UIManager.h"
@@ -30,18 +31,20 @@ Game::Game() {
     InitAudioDevice();
     SetExitKey(KEY_NULL);
 
+    balance = ConfigManager::LoadBalance("config.json");
+
     resources = new ResourceManager();
     resources->LoadAll();
 
     audioManager.Init(resources);
 
-    pickupManager =
-        new PickupManager(&resources->texHealthPotion, &resources->texCoin);
+    coinManager =
+        new CoinManager();
 
     uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin);
 
     bulletManager =
-        new BulletManager(&resources->texBullet, &resources->texArrow);
+        new BulletManager(&resources->texBullet, &resources->texArrow, &resources->texBottle);
     enemyManager = new EnemyManager(resources, bulletManager, &audioManager);
     waveManager = new WaveManager();
 
@@ -49,7 +52,7 @@ Game::Game() {
     SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
 
     levelMap = new Map();
-    player = new Player(resources, &audioManager);
+    player = new Player(resources, &audioManager, &balance);
 
     SpawnPlayer();
     ConfigManager::LoadSettings(audioManager, currentFpsIndex, fpsOptions);
@@ -184,9 +187,9 @@ void Game::UpdatePlaying(float dt) {
 
     bulletManager->Update(dt, levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
-    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap);
-    enemyManager->Update(dt, player, levelMap, bulletManager, pickupManager);
-    pickupManager->Update(dt, player, &audioManager);
+    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap, balance);
+    enemyManager->Update(dt, player, levelMap, bulletManager, coinManager);
+    coinManager->Update(dt, player, &audioManager);
 
     for (auto &bullet : bulletManager->bullets) {
         if (!bullet.active)
@@ -268,7 +271,7 @@ void Game::DrawPlaying() {
 
     BeginMode2D(camera);
     levelMap->DrawBackground();
-    pickupManager->Draw();
+    coinManager->Draw(resources->texCoin);
     enemyManager->Draw();
     player->Draw();
     levelMap->DrawForeground();
@@ -278,7 +281,7 @@ void Game::DrawPlaying() {
 
     uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width);
 
-    shopManager.DrawShop(player, resources, &audioManager);
+    shopManager.DrawShop(player, resources, &audioManager, balance);
 }
 
 void Game::DrawSettings() {

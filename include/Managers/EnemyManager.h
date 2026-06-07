@@ -2,7 +2,8 @@
 #include "BulletManager.h"
 #include "Entities/Enemy.h"
 #include "Entities/Player.h"
-#include "Managers/PickupManager.h"
+#include "Managers/CoinManager.h"
+#include "Managers/GameBalance.h"
 #include "Managers/ResourceManager.h"
 #include "Map.h"
 #include <memory>
@@ -19,15 +20,16 @@ class EnemyManager {
 
     std::vector<std::unique_ptr<Enemy>> enemies;
 
-    void SpawnZombie(Vector2 pos);
-    void SpawnSkeleton(Vector2 pos);
+    void SpawnZombie(Vector2 pos, GameBalance *gm);
+    void SpawnSkeleton(Vector2 pos, GameBalance *gm);
 
     void AddEnemy(std::unique_ptr<Enemy> enemy);
 
     void Update(float dt, Player *player, Map *map,
-                BulletManager *bulletManager, PickupManager *pickupManager);
+                BulletManager *bulletManager, CoinManager *coinManager);
     void Draw();
 
-    std::unique_ptr<Enemy> CreateZombie();
-    std::unique_ptr<Enemy> CreateSkeleton();
+    std::unique_ptr<Enemy> CreateZombie(const GameBalance& gb);
+    std::unique_ptr<Enemy> CreateSkeleton(const GameBalance& gb);
+    std::unique_ptr<Enemy> CreateBoss(const GameBalance& gb);
 };

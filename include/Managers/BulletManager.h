@@ -4,7 +4,7 @@
 #include "raylib.h"
 #include <vector>
 
-enum class BulletType { BULLET, ARROW };
+enum class BulletType { BULLET, ARROW, BOTTLE };
 
 struct Bullet {
     Vector2 position;
@@ -29,8 +29,9 @@ class BulletManager {
 
     Texture2D *texBullet;
     Texture2D *texArrow;
+    Texture2D *texBottle;
 
-    BulletManager(Texture2D *texBullet, Texture2D *texArrow);
+    BulletManager(Texture2D *texBullet, Texture2D *texArrow, Texture2D *texBottle);
     void Shoot(Vector2 startPos, Vector2 targetPos, float damage,
                BulletType bulletType, float speed, float spreadAngle, bool isEnemy);
     void Update(float dt, Map *map);

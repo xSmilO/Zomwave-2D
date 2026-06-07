@@ -2,6 +2,7 @@
 #include "Animator.h"
 #include "Managers/AudioManager.h"
 #include "Managers/BulletManager.h"
+#include "Managers/GameBalance.h"
 #include "Managers/ResourceManager.h"
 #include "Map.h"
 #include "Weapon.h"
@@ -19,7 +20,6 @@ class Player {
     Animator animator;
     bool facingLeft;
     Rectangle futureHitbox;
-    float invincibilityDuration;
     std::vector<std::unique_ptr<Weapon>> arsenal;
     int currentWeaponIndex;
     float shootTimer;
@@ -27,20 +27,28 @@ class Player {
     float timeBetweenSteps;
     ResourceManager *resourceManager;
     AudioManager *audioManager;
+    GameBalance *gameBalance;
 
     void CalculateWeaponPos(Vector2 mousePosition);
     void InitializeArsenal();
 
   public:
+    float invincibilityDuration;
+    float invincibilityTimer;
     float speed;
     float maxHealth;
     float health;
-    float invincibilityTimer;
+
     int coins;
     int potions;
+
     bool isAlive;
 
-    Player(ResourceManager *resourceManager, AudioManager *audioManager);
+    int maxHealthLevel;
+    int speedLevel;
+    int potionsBought;
+
+    Player(ResourceManager *resourceManager, AudioManager *audioManager, GameBalance* gm);
     void Update(float dt, Vector2 mousePosition, Map *map,
                 BulletManager *bulletManager);
     void Draw();
@@ -53,4 +61,5 @@ class Player {
     Weapon *GetWeapon(WeaponType type);
     void EquipWeapon(WeaponType type);
     void UpgradeWeapon();
+    void InitStats();
 };

@@ -13,7 +13,6 @@ Zombie::Zombie(Texture2D *texZombie, Vector2 startPos, AudioManager* am) {
     maxHealth = health;
     active = true;
     attackTimer = 0.0f;
-    attackCooldown = 1.5f;
     ambientTimer = GetRandomValue(300, 800) / 100.0f;
 
     std::vector<Vector2> walkFramePos = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};

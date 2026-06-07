@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Managers/EnemyManager.h"
+#include "Managers/GameBalance.h"
 #include "Map.h"
 #include "raylib.h"
 
@@ -18,7 +19,7 @@ class WaveManager {
 
   public:
     void Update(float dt, EnemyManager *enemyManager, Vector2 playerPos,
-                Map *map);
+                Map *map, const GameBalance& gb);
 
     int GetCurrentWave() const { return currentWave; }
     float GetGlobalTime() const { return globalTime; }

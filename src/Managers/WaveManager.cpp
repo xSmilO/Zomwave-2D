@@ -16,8 +16,6 @@ bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
         }
     }
 
-    Rectangle hit = enemy->GetHitbox();
-
     if (candidates.empty()) {
         return false;
     }
@@ -34,35 +32,45 @@ bool WaveManager::TryFindSpawnPos(Vector2 playerPos, Enemy *enemy, Map *map) {
 }
 
 void WaveManager::Update(float dt, EnemyManager *enemyManager,
-                         Vector2 playerPos, Map *map) {
+                         Vector2 playerPos, Map *map, const GameBalance &gb) {
     globalTime += dt;
     waveTimer += dt;
+
     if (waveTimer >= waveDuration) {
         currentWave++;
         waveTimer = 0.0f;
-        bossSpawned = false;
     }
 
-    float currentSpawnInterval = 1.5f / (1.0f) + (currentWave * 1.15f);
+    float currentSpawnInterval = gb.waves.baseSpawnInterval / (1.0f + (currentWave * gb.waves.waveMultiplier));
 
-    if (currentSpawnInterval < 0.15f)
-        currentSpawnInterval = 0.15f;
+    if (currentSpawnInterval < gb.waves.minSpawnInterval) {
+        currentSpawnInterval = gb.waves.minSpawnInterval;
+    }
 
     spawnTimer += dt;
     if (spawnTimer >= currentSpawnInterval) {
         std::unique_ptr<Enemy> newEnemy = nullptr;
-        int skeletonChance = 10 + (currentWave * 5);
 
-        if (skeletonChance > 40) {
+        int skeletonChance = 10 + (currentWave * 5);
+        if (skeletonChance > 40)
             skeletonChance = 40;
+
+        int bossChance = 0;
+        if (currentWave >= 5) {
+            bossChance = 2 + ((currentWave - 5) * 2);
+
+            if (bossChance > 15)
+                bossChance = 15;
         }
 
         int roll = GetRandomValue(1, 100);
 
-        if (roll <= skeletonChance) {
-            newEnemy = enemyManager->CreateSkeleton();
+        if (roll <= bossChance) {
+            newEnemy = enemyManager->CreateBoss(gb);
+        } else if (roll <= (bossChance + skeletonChance)) {
+            newEnemy = enemyManager->CreateSkeleton(gb);
         } else {
-            newEnemy = enemyManager->CreateZombie();
+            newEnemy = enemyManager->CreateZombie(gb);
         }
 
         if (newEnemy != nullptr) {

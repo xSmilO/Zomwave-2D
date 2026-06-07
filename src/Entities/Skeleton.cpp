@@ -11,8 +11,6 @@ Skeleton::Skeleton(Texture2D *texCharacter, Texture2D *texBow, Vector2 startPos,
     position = startPos;
     width = 20.0f;
     height = 20.0f;
-    health = 80.0f;
-    maxHealth = health;
 
     std::vector<Vector2> walkFramePos = {{0, 0}, {1, 0}, {2, 0}, {3, 0},
                                          {4, 0}, {5, 0}, {6, 0}};
@@ -51,8 +49,8 @@ void Skeleton::Update(float dt, Vector2 playerPos, Map *map) {
     if (!active)
         return;
 
-    if (fireTimer > 0.0f)
-        fireTimer -= dt;
+    if (attackTimer > 0.0f)
+        attackTimer -= dt;
 
     animator.Update(dt);
     bowAnimator.Update(dt);
@@ -64,7 +62,8 @@ void Skeleton::Update(float dt, Vector2 playerPos, Map *map) {
         dir = Vector2Normalize(dir);
     }
 
-    if (bowAnimator.IsAnimationFinished() && bowAnimator.GetState() == "shoot") {
+    if (bowAnimator.IsAnimationFinished() &&
+        bowAnimator.GetState() == "shoot") {
         float angleRad = bowRotation * DEG2RAD;
 
         Vector2 arrowStart = {position.x + cosf(angleRad),
@@ -74,11 +73,11 @@ void Skeleton::Update(float dt, Vector2 playerPos, Map *map) {
         Vector2 arrowTarget =
             Vector2Add(arrowStart, Vector2Scale(baseDirection, 1000.0f));
 
-        bulletManager->Shoot(arrowStart, arrowTarget, 20, BulletType::ARROW,
+        bulletManager->Shoot(arrowStart, arrowTarget, damage, BulletType::ARROW,
                              500.0f, 0, true);
 
         bowAnimator.SetState("idle");
-        fireTimer = fireRate;
+        attackTimer = attackCooldown;
     }
 
     if (distance > stopRange) {
@@ -108,7 +107,8 @@ void Skeleton::Update(float dt, Vector2 playerPos, Map *map) {
 
     CalculateBowPos(playerPos);
 
-    if (distance <= attackRange && fireTimer <= 0.0f && bowAnimator.GetState() != "shoot") {
+    if (distance <= attackRange && attackTimer <= 0.0f &&
+        bowAnimator.GetState() != "shoot") {
         bowAnimator.SetState("shoot");
         audioManager->PlayShoot(WeaponType::BOW);
         bowAnimator.ResetAnimation();

@@ -4,7 +4,6 @@
 
 class Zombie : public Enemy {
   private:
-    float speed;
     bool texFlip;
     Animator animator;
     float ambientTimer;

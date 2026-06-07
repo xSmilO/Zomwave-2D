@@ -15,7 +15,10 @@ class Enemy {
     float maxHealth;
     float attackCooldown = 1.0f;
     float attackTimer = 0.0f;
+    float speed;
     int damage = 15;
+    int killReward;
+    int dropReward;
 
 
     virtual ~Enemy() = default;
@@ -24,5 +27,5 @@ class Enemy {
     virtual void Draw() = 0;
     virtual Rectangle GetHitbox() = 0;
 
-    void DrawHealthBar();
+    virtual void DrawHealthBar();
 };
