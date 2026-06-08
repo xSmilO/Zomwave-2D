@@ -14,15 +14,13 @@ Game::Game() {
 #if defined(PLATFORM_WEB)
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);
 #else
-    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT |
-                   FLAG_WINDOW_RESIZABLE); // set custom flags for desktop
-    SetTargetFPS(
-        144); // do not set fps when used in browser for better web performance
+    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE); // set custom flags for desktop
+    SetTargetFPS(144); // do not set fps when used in browser for better web performance
 #endif
     previousState = GameState::MAIN_MENU;
     currentState = GameState::MAIN_MENU;
-    screenWidth = 1920;
-    screenHeight = 1080;
+    screenWidth = 800;
+    screenHeight = 600;
     camera.offset = {virtualWidth / 2.0f, virtualHeight / 2.0f};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
@@ -40,8 +38,7 @@ Game::Game() {
 
     uiManager = new UIManager(&resources->texHealthPotion, &resources->texCoin, &resources->texBomb);
 
-    bulletManager = new BulletManager(
-        &resources->texBullet, &resources->texArrow, &resources->texBottle);
+    bulletManager = new BulletManager(&resources->texBullet, &resources->texArrow, &resources->texBottle);
     enemyManager = new EnemyManager(resources, bulletManager, &audioManager);
     waveManager = new WaveManager();
     waveManager->Init(gameBalance);
@@ -84,14 +81,14 @@ void Game::Draw() {
     int padding = 30; // set padding to avoid scrollbar and browser edge overlap
     SetWindowSize(getBrowserWidth() - padding, getBrowserHeight() - padding);
 #endif
-    if (currentState == GameState::PLAYING) {
+    if(currentState == GameState::PLAYING) {
         DrawLights();
     }
 
     BeginTextureMode(target);
     ClearBackground(RAYWHITE);
 
-    switch (currentState) {
+    switch(currentState) {
     case GameState::MAIN_MENU:
         DrawMainMenu();
         break;
@@ -116,14 +113,11 @@ void Game::Draw() {
     BeginDrawing();
     ClearBackground(BLACK);
 
-    float scale = fminf((float)GetScreenWidth() / virtualWidth,
-                        (float)GetScreenHeight() / virtualHeight);
-    Rectangle source = {0.0f, 0.0f, (float)target.texture.width,
-                        (float)-target.texture.height};
+    Rectangle source = {0.0f, 0.0f, (float)target.texture.width, (float)-target.texture.height};
 
-    Rectangle dest = {(GetScreenWidth() - (virtualWidth * scale)) * 0.5f,
-                      (GetScreenHeight() - (virtualHeight * scale)) * 0.5f,
-                      virtualWidth * scale, virtualHeight * scale};
+    // Wyrzucamy zmienną 'scale' i centrującą matematykę.
+    // Od razu mówimy: rysuj od lewego górnego rogu (0,0) na całą szerokość i wysokość okna.
+    Rectangle dest = {0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight()};
 
     DrawTexturePro(target.texture, source, dest, {0, 0}, 0.0f, WHITE);
 
@@ -131,19 +125,20 @@ void Game::Draw() {
 }
 
 void Game::Update() {
-    float scale = fminf((float)GetScreenWidth() / virtualWidth,
-                        (float)GetScreenHeight() / virtualHeight);
-    float offsetX = (GetScreenWidth() - (virtualWidth * scale)) * 0.5f;
-    float offsetY = (GetScreenHeight() - (virtualHeight * scale)) * 0.5f;
+    float scaleX = (float)GetScreenWidth() / virtualWidth;
+    float scaleY = (float)GetScreenHeight() / virtualHeight;
 
-    SetMouseOffset(-(int)offsetX, -(int)offsetY);
-    SetMouseScale(1.0f / scale, 1.0f / scale);
+    // Zerujemy przesunięcie (brak czarnych pasów)
+    SetMouseOffset(0, 0);
+
+    // Ustawiamy skalę myszki osobno dla osi X i Y
+    SetMouseScale(1.0f / scaleX, 1.0f / scaleY);
 
     float dt = GetFrameTime();
 
     audioManager.UpdateMusic();
 
-    switch (currentState) {
+    switch(currentState) {
     case GameState::MAIN_MENU:
         UpdateMainMenu(dt);
         break;
@@ -174,19 +169,20 @@ void Game::Run() {
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop_arg(MainLoopHelper, this, 0, 1);
 #else
-    while (!WindowShouldClose() && currentState != GameState::EXIT) {
+    while(!WindowShouldClose() && currentState != GameState::EXIT) {
         MainLoopHelper(this);
     }
 #endif
 }
 
-void Game::UpdateMainMenu(float dt) {}
+void Game::UpdateMainMenu(float dt) {
+}
 
 void Game::UpdatePlaying(float dt) {
-    if (!player->isAlive) {
+    if(!player->isAlive) {
         int reachedWave = waveManager->GetCurrentWave();
 
-        if (reachedWave > saveData.highScoreWave) {
+        if(reachedWave > saveData.highScoreWave) {
             saveData.highScoreWave = reachedWave;
             SaveGame();
         }
@@ -196,42 +192,41 @@ void Game::UpdatePlaying(float dt) {
         return;
     }
 
-    if (IsKeyPressed(KEY_ESCAPE)) {
+    if(IsKeyPressed(KEY_ESCAPE)) {
         currentState = GameState::PAUSED;
         audioManager.PauseMusic();
     }
 
-    if (IsKeyPressed(KEY_B)) {
+    if(IsKeyPressed(KEY_B)) {
         shopManager.isOpen = !shopManager.isOpen;
     }
 
-    if (IsKeyPressed(KEY_G) && player->bombs > 0) {
+    if(IsKeyPressed(KEY_G) && player->bombs > 0) {
         player->bombs--;
 
         bombManager.ThrowBomb(player->GetPosition(), mousePosition);
     }
 
-    if (shopManager.isOpen) {
+    if(shopManager.isOpen) {
         dt = 0.0f;
         return;
     }
 
     bulletManager->Update(dt, levelMap);
     player->Update(dt, mousePosition, levelMap, bulletManager);
-    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap,
-                        gameBalance);
+    waveManager->Update(dt, enemyManager, player->GetPosition(), levelMap, gameBalance);
     enemyManager->Update(dt, player, levelMap, bulletManager, &coinManager);
     coinManager.Update(dt, player, &audioManager);
     bombManager.Update(dt, player, enemyManager, &audioManager);
 
-    for (auto &bullet : bulletManager->bullets) {
-        if (!bullet.active)
+    for(auto &bullet : bulletManager->bullets) {
+        if(!bullet.active)
             continue;
 
-        if (!bullet.isEnemy)
+        if(!bullet.isEnemy)
             continue;
 
-        if (CheckCollisionRecs(player->GetHitbox(), bullet.GetHitbox())) {
+        if(CheckCollisionRecs(player->GetHitbox(), bullet.GetHitbox())) {
             player->TakeDamage(bullet.damage);
             bullet.active = false;
         }
@@ -246,21 +241,19 @@ void Game::UpdatePlaying(float dt) {
     mousePosition = GetScreenToWorld2D(mousePosition, camera);
 }
 
-void Game::UpdateSettings(float dt) {}
+void Game::UpdateSettings(float dt) {
+}
 
 void Game::UpdatePaused(float dt) {
-    if (IsKeyPressed(KEY_ESCAPE)) {
+    if(IsKeyPressed(KEY_ESCAPE)) {
         currentState = GameState::PLAYING;
         audioManager.ResumeMusic();
     }
 }
 
 void Game::DrawMainMenu() {
-    DrawTexturePro(resources->texSkyBox,
-                   {0, 0, (float)resources->texSkyBox.width,
-                    (float)resources->texSkyBox.height},
-                   {0, 0, (float)virtualWidth, (float)virtualHeight}, {0, 0}, 0,
-                   WHITE);
+    DrawTexturePro(resources->texSkyBox, {0, 0, (float)resources->texSkyBox.width, (float)resources->texSkyBox.height},
+                   {0, 0, (float)virtualWidth, (float)virtualHeight}, {0, 0}, 0, WHITE);
 
     float btnWidth = 200.0f;
     float btnHeight = 50.0f;
@@ -275,39 +268,31 @@ void Game::DrawMainMenu() {
     int titleWidth = MeasureText(title, titleSize);
     DrawText(title, centerX - (titleWidth / 2), 100, titleSize, MAROON);
 
-    if (GuiButton({btnX, startY, btnWidth, btnHeight}, "GRAJ")) {
+    if(GuiButton({btnX, startY, btnWidth, btnHeight}, "GRAJ")) {
         audioManager.PlayUIClick();
         currentState = GameState::PLAYING;
         audioManager.PlayGameMusic();
     }
-    if (GuiButton({btnX, startY + (btnHeight + spacing), btnWidth, btnHeight},
-                  "USTAWIENIA")) {
+    if(GuiButton({btnX, startY + (btnHeight + spacing), btnWidth, btnHeight}, "USTAWIENIA")) {
         audioManager.PlayUIClick();
         previousState = currentState;
         currentState = GameState::SETTINGS;
     }
 
-    if (GuiButton(
-            {btnX, startY + (btnHeight + spacing) * 2, btnWidth, btnHeight},
-            "WYJDZ")) {
+    if(GuiButton({btnX, startY + (btnHeight + spacing) * 2, btnWidth, btnHeight}, "WYJDZ")) {
         audioManager.PlayUIClick();
         currentState = GameState::EXIT;
     }
 
-    const char *highScoreText =
-        TextFormat("HIGH SCORE (FALA): %d", saveData.highScoreWave);
+    const char *highScoreText = TextFormat("HIGH SCORE (FALA): %d", saveData.highScoreWave);
     int hsWidth = MeasureText(highScoreText, 20);
-    DrawText(highScoreText, virtualWidth - hsWidth - 20, virtualHeight - 40, 20,
-             GOLD);
+    DrawText(highScoreText, virtualWidth - hsWidth - 20, virtualHeight - 40, 20, GOLD);
 }
 
 void Game::DrawPlaying() {
 
-    DrawTexturePro(resources->texSkyBox,
-                   {0, 0, (float)resources->texSkyBox.width,
-                    (float)resources->texSkyBox.height},
-                   {0, 0, (float)virtualWidth, (float)virtualHeight}, {0, 0}, 0,
-                   WHITE);
+    DrawTexturePro(resources->texSkyBox, {0, 0, (float)resources->texSkyBox.width, (float)resources->texSkyBox.height},
+                   {0, 0, (float)virtualWidth, (float)virtualHeight}, {0, 0}, 0, WHITE);
 
     BeginMode2D(camera);
     levelMap->DrawBackground();
@@ -320,8 +305,7 @@ void Game::DrawPlaying() {
 
     BeginBlendMode(BLEND_MULTIPLIED);
 
-    Rectangle sourceRec = {0.0f, 0.0f, (float)lightMask.texture.width,
-                           -(float)lightMask.texture.height};
+    Rectangle sourceRec = {0.0f, 0.0f, (float)lightMask.texture.width, -(float)lightMask.texture.height};
 
     DrawTextureRec(lightMask.texture, sourceRec, {0.0f, 0.0f}, WHITE);
 
@@ -331,8 +315,7 @@ void Game::DrawPlaying() {
     bulletManager->Draw();
     EndMode2D();
 
-    uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width,
-                       target.texture.height);
+    uiManager->DrawHUD(player, waveManager, enemyManager, target.texture.width, target.texture.height);
     shopManager.DrawShop(player, resources, &audioManager, gameBalance);
 }
 
@@ -346,44 +329,35 @@ void Game::DrawSettings() {
     float btnWidth = 300.0f;
     float btnX = centerX - (btnWidth / 2.0f);
 
-    DrawText("USTAWIENIA", centerX - MeasureText("USTAWIENIA", 50) / 2,
-             startPos, 50, LIGHTGRAY);
+    DrawText("USTAWIENIA", centerX - MeasureText("USTAWIENIA", 50) / 2, startPos, 50, LIGHTGRAY);
 
-    const char *musText =
-        TextFormat("MUZYKA: %i%%", (int)(audioManager.GetMusicVolume() * 100));
-    DrawText(musText, centerX - MeasureText(musText, 25) / 2,
-             startPos + marginTop, 25, GRAY);
+    const char *musText = TextFormat("MUZYKA: %i%%", (int)(audioManager.GetMusicVolume() * 100));
+    DrawText(musText, centerX - MeasureText(musText, 25) / 2, startPos + marginTop, 25, GRAY);
 
     float tempMusicVol = audioManager.GetMusicVolume();
 
-    GuiSlider({btnX, startPos + marginTop + 40, btnWidth, 40}, "0%", "100%",
-              &tempMusicVol, 0.0f, 1.0f);
+    GuiSlider({btnX, startPos + marginTop + 40, btnWidth, 40}, "0%", "100%", &tempMusicVol, 0.0f, 1.0f);
 
-    if (tempMusicVol != audioManager.GetMusicVolume()) {
+    if(tempMusicVol != audioManager.GetMusicVolume()) {
         audioManager.SetMusicVolume(tempMusicVol);
     }
 
-    const char *sfxText = TextFormat("EFEKTY (SFX): %i%%",
-                                     (int)(audioManager.GetSFXVolume() * 100));
-    DrawText(sfxText, centerX - MeasureText(sfxText, 25) / 2,
-             startPos + (marginTop * 2) + 20, 25, GRAY);
+    const char *sfxText = TextFormat("EFEKTY (SFX): %i%%", (int)(audioManager.GetSFXVolume() * 100));
+    DrawText(sfxText, centerX - MeasureText(sfxText, 25) / 2, startPos + (marginTop * 2) + 20, 25, GRAY);
 
     float tempSfxVol = audioManager.GetSFXVolume();
-    GuiSlider({btnX, startPos + (marginTop * 2) + 60, btnWidth, 40}, "0%",
-              "100%", &tempSfxVol, 0.0f, 1.0f);
+    GuiSlider({btnX, startPos + (marginTop * 2) + 60, btnWidth, 40}, "0%", "100%", &tempSfxVol, 0.0f, 1.0f);
 
-    if (tempSfxVol != audioManager.GetSFXVolume()) {
+    if(tempSfxVol != audioManager.GetSFXVolume()) {
         audioManager.SetSFXVolume(tempSfxVol);
     }
 
-    const char *fpsText =
-        TextFormat("LIMIT FPS: %i", fpsOptions[currentFpsIndex]);
+    const char *fpsText = TextFormat("LIMIT FPS: %i", fpsOptions[currentFpsIndex]);
 
-    if (GuiButton({btnX, startPos + (marginTop * 3) + 40, btnWidth, 50},
-                  fpsText)) {
+    if(GuiButton({btnX, startPos + (marginTop * 3) + 40, btnWidth, 50}, fpsText)) {
         currentFpsIndex++; // Zwiększamy indeks
 
-        if (currentFpsIndex >= fpsOptions.size()) {
+        if(currentFpsIndex >= fpsOptions.size()) {
             currentFpsIndex = 0;
         }
 
@@ -391,8 +365,7 @@ void Game::DrawSettings() {
         SetTargetFPS(fpsOptions[currentFpsIndex]);
     }
 
-    if (GuiButton({centerX - 100.0f, startPos + (marginTop * 4) + 40, 200, 50},
-                  "WROC")) {
+    if(GuiButton({centerX - 100.0f, startPos + (marginTop * 4) + 40, 200, 50}, "WROC")) {
         ConfigManager::SaveSettings(audioManager, currentFpsIndex);
         audioManager.PlayUIClick();
         currentState = previousState;
@@ -408,22 +381,21 @@ void Game::DrawPaused() {
     float btnWidth = 200.0f;
     float btnX = screenWidth / 2.0f - (btnWidth / 2.0f);
 
-    DrawText("PAUZA", screenWidth / 2 - MeasureText("PAUZA", 60) / 2, 50, 60,
-             LIGHTGRAY);
+    DrawText("PAUZA", screenWidth / 2 - MeasureText("PAUZA", 60) / 2, 50, 60, LIGHTGRAY);
 
-    if (GuiButton({btnX, 170, btnWidth, 50}, "WROC DO GRY")) {
+    if(GuiButton({btnX, 170, btnWidth, 50}, "WROC DO GRY")) {
         audioManager.PlayUIClick();
         currentState = GameState::PLAYING;
         audioManager.ResumeMusic();
     }
 
-    if (GuiButton({btnX, 240, btnWidth, 50}, "USTAWIENIA")) {
+    if(GuiButton({btnX, 240, btnWidth, 50}, "USTAWIENIA")) {
         audioManager.PlayUIClick();
         previousState = currentState;
         currentState = GameState::SETTINGS;
     }
 
-    if (GuiButton({btnX, 310, btnWidth, 50}, "MENU GLOWNE")) {
+    if(GuiButton({btnX, 310, btnWidth, 50}, "MENU GLOWNE")) {
         audioManager.PlayUIClick();
         currentState = GameState::MAIN_MENU;
         audioManager.PlayMenuMusic();
@@ -437,12 +409,12 @@ void Game::DrawLights() {
     BeginMode2D(camera);
 
     Color bulletColor;
-    DrawCircleGradient({player->GetPosition().x, player->GetPosition().y},
-                       player->visionRadius, Color{255, 255, 255, 255}, BLANK);
+    DrawCircleGradient({player->GetPosition().x, player->GetPosition().y}, player->visionRadius,
+                       Color{255, 255, 255, 255}, BLANK);
 
-    for (const auto &bullet : bulletManager->bullets) {
-        if (bullet.active) {
-            if (bullet.isEnemy) {
+    for(const auto &bullet : bulletManager->bullets) {
+        if(bullet.active) {
+            if(bullet.isEnemy) {
                 bulletColor = {0, 200, 0, 120};
             } else {
                 bulletColor = {255, 200, 0, 150};
@@ -451,9 +423,9 @@ void Game::DrawLights() {
         }
     }
 
-    for (const auto &coin : coinManager.coins) {
+    for(const auto &coin : coinManager.coins) {
 
-        if (coin.active) {
+        if(coin.active) {
             DrawCircleGradient(coin.position, 20, {255, 200, 0, 150}, BLANK);
         }
     }
@@ -467,22 +439,18 @@ void Game::DrawGameOver() {
 
     int titleFontSize = 80;
     int titleWidth = MeasureText("ZGINALES!", titleFontSize);
-    DrawText("ZGINALES!", virtualWidth / 2 - titleWidth / 2,
-             virtualHeight / 2 - 150, titleFontSize, RED);
+    DrawText("ZGINALES!", virtualWidth / 2 - titleWidth / 2, virtualHeight / 2 - 150, titleFontSize, RED);
 
-    const char *statsText =
-        TextFormat("Dotarles do fali: %d", waveManager->GetCurrentWave());
+    const char *statsText = TextFormat("Dotarles do fali: %d", waveManager->GetCurrentWave());
     int statsWidth = MeasureText(statsText, 30);
-    DrawText(statsText, virtualWidth / 2 - statsWidth / 2, virtualHeight / 2,
-             30, LIGHTGRAY);
+    DrawText(statsText, virtualWidth / 2 - statsWidth / 2, virtualHeight / 2, 30, LIGHTGRAY);
 
     int btnWidth = 300;
     int btnHeight = 50;
     float btnX = virtualWidth / 2 - btnWidth / 2;
     float btnY = virtualHeight / 2 + 100;
 
-    if (GuiButton({btnX, btnY, (float)btnWidth, (float)btnHeight},
-                  "POWROT DO MENU")) {
+    if(GuiButton({btnX, btnY, (float)btnWidth, (float)btnHeight}, "POWROT DO MENU")) {
         audioManager.PlayMenuMusic();
         currentState = GameState::MAIN_MENU;
 
@@ -503,7 +471,7 @@ void Game::SpawnPlayer() {
 
 void Game::LoadSave() {
     std::ifstream file("save.json");
-    if (file.is_open()) {
+    if(file.is_open()) {
         nlohmann::json j;
         file >> j;
         saveData = j.get<SaveData>();
@@ -513,7 +481,7 @@ void Game::LoadSave() {
 
 void Game::SaveGame() {
     std::ofstream file("save.json");
-    if (file.is_open()) {
+    if(file.is_open()) {
         nlohmann::json j = saveData;
         file << j.dump(4);
         file.close();
