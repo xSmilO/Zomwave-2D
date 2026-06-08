@@ -7,15 +7,26 @@
 
 using json = nlohmann::json;
 
+/**
+ * @class ConfigManager
+ * @brief Static utility class for loading and saving game configuration.
+ *
+ * Handles persistent settings (audio volume, FPS limit) via a JSON file
+ * and loads the game balance configuration from a separate JSON file.
+ */
 class ConfigManager {
 
   public:
-    static void LoadSettings(AudioManager &audioManager, int &currentFpsIndex,
-                             const std::vector<int> &fpsOptions) {
+    /**
+     * @brief Loads audio and FPS settings from "settings.json".
+     * @param audioManager    Reference to the audio manager to apply volume settings.
+     * @param currentFpsIndex Output parameter for the FPS limit index.
+     * @param fpsOptions      List of available FPS options.
+     */
+    static void LoadSettings(AudioManager &audioManager, int &currentFpsIndex, const std::vector<int> &fpsOptions) {
         std::ifstream file("settings.json");
 
-
-        if (!file.is_open())
+        if(!file.is_open())
             return;
 
         json j;
@@ -26,11 +37,16 @@ class ConfigManager {
 
         currentFpsIndex = j.value("fpsIndex", 1);
 
-        if (currentFpsIndex >= 0 && currentFpsIndex < fpsOptions.size()) {
+        if(currentFpsIndex >= 0 && currentFpsIndex < fpsOptions.size()) {
             SetTargetFPS(fpsOptions[currentFpsIndex]);
         }
     }
 
+    /**
+     * @brief Saves audio and FPS settings to "settings.json".
+     * @param audioManager    Reference to the audio manager to read volume from.
+     * @param currentFpsIndex Current FPS limit index.
+     */
     static void SaveSettings(AudioManager &audioManager, int currentFpsIndex) {
         json j;
         j["musicVolume"] = audioManager.GetMusicVolume();
@@ -41,7 +57,12 @@ class ConfigManager {
         file << j.dump(4);
     }
 
-    static GameBalance LoadBalance(const std::string& filepath = "balance.json") {
+    /**
+     * @brief Loads the game balance configuration from a JSON file.
+     * @param filepath Path to the balance JSON file (default: "balance.json").
+     * @return A populated GameBalance struct.
+     */
+    static GameBalance LoadBalance(const std::string &filepath = "balance.json") {
         GameBalance balance;
         std::ifstream file(filepath);
 
@@ -50,7 +71,7 @@ class ConfigManager {
                 json j;
                 file >> j;
                 balance = j.get<GameBalance>();
-            } catch(const std::exception& e) {
+            } catch(const std::exception &e) {
                 printf("ERROR WHILE LOADING A CONFIG %s\n", e.what());
             }
         } else {

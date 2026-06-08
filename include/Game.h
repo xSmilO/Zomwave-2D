@@ -13,47 +13,70 @@
 #include "raylib.h"
 #include <nlohmann/json.hpp>
 
-enum class GameState { MAIN_MENU, PLAYING, SETTINGS, PAUSED, EXIT, GAME_OVER };
+/**
+ * @enum GameState
+ * @brief Possible states of the main game loop.
+ */
+enum class GameState {
+    MAIN_MENU,
+    PLAYING,
+    SETTINGS,
+    PAUSED,
+    EXIT,
+    GAME_OVER
+};
 
+/**
+ * @struct SaveData
+ * @brief Persistent data saved between sessions.
+ */
 struct SaveData {
-    int highScoreWave = 0;
+    int highScoreWave = 0; ///< Highest wave number the player has reached.
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SaveData, highScoreWave)
 
+/**
+ * @class Game
+ * @brief Central game class that owns all subsystems and runs the main loop.
+ *
+ * Manages game state transitions (menu, playing, paused, settings, game over),
+ * coordinates all managers, and handles rendering via a virtual-resolution
+ * render target with a light-mask overlay.
+ */
 class Game {
   private:
-    SaveData saveData;
-    GameBalance gameBalance;
-    GameState currentState;
-    GameState previousState;
-    Camera2D camera;
-    Vector2 mousePosition;
-    Player *player;
-    int screenWidth{};
-    int screenHeight{};
-    Map *levelMap;
-    ResourceManager *resources;
-    UIManager *uiManager;
+    SaveData saveData;          ///< Persistent save data (high score).
+    GameBalance gameBalance;    ///< Loaded game balance configuration.
+    GameState currentState;     ///< Current state of the game loop.
+    GameState previousState;    ///< Previous state (used when unpausing).
+    Camera2D camera;            ///< World-space camera following the player.
+    Vector2 mousePosition;      ///< Current mouse position in world coordinates.
+    Player *player;             ///< The player entity.
+    int screenWidth{};          ///< Current window width in pixels.
+    int screenHeight{};         ///< Current window height in pixels.
+    Map *levelMap;              ///< The game map.
+    ResourceManager *resources; ///< Resource manager (textures, sounds, music).
+    UIManager *uiManager;       ///< UI overlay manager.
 
-    BulletManager *bulletManager;
-    EnemyManager *enemyManager;
-    WaveManager *waveManager;
+    BulletManager *bulletManager; ///< Manages all bullet projectiles.
+    EnemyManager *enemyManager;   ///< Manages all enemy entities.
+    WaveManager *waveManager;     ///< Manages wave progression and spawning.
 
-    CoinManager coinManager;
-    ShopManager shopManager;
-    AudioManager audioManager;
-    BombManager bombManager;
+    CoinManager coinManager;   ///< Manages coin pickups.
+    ShopManager shopManager;   ///< Manages the in-game shop UI.
+    AudioManager audioManager; ///< Manages audio playback.
+    BombManager bombManager;   ///< Manages thrown bombs.
 
-    std::vector<int> fpsOptions = {30, 60, 90, 120, 144, 180, 240};
-    int currentFpsIndex = 1;
+    std::vector<int> fpsOptions = {30, 60, 90, 120, 144, 180, 240}; ///< Available FPS limits.
+    int currentFpsIndex = 1; ///< Index into fpsOptions for the current FPS limit.
 
-    RenderTexture2D lightMask;
-    RenderTexture2D target;
-    const int virtualWidth = 800;
-    const int virtualHeight = 450;
+    RenderTexture2D lightMask;     ///< Render target for the dynamic light mask.
+    RenderTexture2D target;        ///< Virtual-resolution render target (800x450).
+    const int virtualWidth = 800;  ///< Virtual resolution width.
+    const int virtualHeight = 450; ///< Virtual resolution height.
 
-    float masterVolume = 1.0f;
+    float masterVolume = 1.0f; ///< Master volume multiplier.
 
     void Draw();
     void DrawMainMenu();
@@ -78,5 +101,7 @@ class Game {
   public:
     Game();
     ~Game();
+
+    /// Starts and runs the main game loop until EXIT state is reached.
     void Run();
 };

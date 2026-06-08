@@ -2,71 +2,85 @@
 #include <raylib.h>
 #include <vector>
 
+/**
+ * @class ResourceManager
+ * @brief Loads, stores, and unloads all game assets (textures, sounds, music).
+ *
+ * All asset loading happens in LoadAll() and unloading in UnloadAll().
+ * Textures and sounds are accessed via public member fields.
+ */
 class ResourceManager {
   public:
-    Texture2D texPlayerIdle;
-    Texture2D texPlayerWalk;
+    // -- Player textures --
+    Texture2D texPlayerIdle; ///< Player idle animation spritesheet.
+    Texture2D texPlayerWalk; ///< Player walk animation spritesheet.
 
-    Texture2D texZombie;
+    // -- Enemy textures --
+    Texture2D texZombie;   ///< Zombie walk animation spritesheet.
+    Texture2D texSkeleton; ///< Skeleton walk animation spritesheet.
 
-    Texture2D texSkeleton;
+    // -- Weapon textures --
+    Texture2D texGlockShoot;   ///< Glock shooting animation spritesheet.
+    Texture2D texGlockReload;  ///< Glock reloading animation spritesheet.
+    Texture2D texAk47Shoot;    ///< AK-47 shooting animation spritesheet.
+    Texture2D texAk47Reload;   ///< AK-47 reloading animation spritesheet.
+    Texture2D texMp5Shoot;     ///< MP5 shooting animation spritesheet.
+    Texture2D texMp5Reload;    ///< MP5 reloading animation spritesheet.
+    Texture2D texShotgunShoot; ///< Shotgun shooting animation spritesheet.
 
-    Texture2D texGlockShoot;
-    Texture2D texGlockReload;
+    // -- Item textures --
+    Texture2D texCoin;         ///< Coin pickup texture.
+    Texture2D texHealthPotion; ///< Health potion pickup texture.
 
-    Texture2D texAk47Shoot;
-    Texture2D texAk47Reload;
+    // -- Projectile textures --
+    Texture2D texBullet; ///< Standard bullet texture.
+    Texture2D texArrow;  ///< Arrow projectile texture.
 
-    Texture2D texMp5Shoot;
-    Texture2D texMp5Reload;
+    // -- Equipment textures --
+    Texture2D texBow; ///< Bow weapon texture.
 
-    Texture2D texShotgunShoot;
+    // -- Boss textures --
+    Texture2D texBossWalk;   ///< Boss walk animation spritesheet.
+    Texture2D texBossAttack; ///< Boss attack animation spritesheet.
+    Texture2D texBossIdle;   ///< Boss idle animation spritesheet.
 
-    Texture2D texCoin;
-    Texture2D texHealthPotion;
+    // -- Environment textures --
+    Texture2D texSkyBox; ///< Skybox / background texture.
+    Texture2D texBottle; ///< Bottle projectile texture.
+    Texture2D texBomb;   ///< Bomb pickup / throwable texture.
 
-    Texture2D texBullet;
-    Texture2D texArrow;
+    // -- UI sounds --
+    Sound sfxUIClick; ///< UI click sound.
 
-    Texture2D texBow;
+    // -- Weapon sounds --
+    Sound sfxGlockShoot;    ///< Glock shoot sound.
+    Sound sfxGlockReload;   ///< Glock reload sound.
+    Sound sfxMP5Shoot;      ///< MP5 shoot sound.
+    Sound sfxMP5Reload;     ///< MP5 reload sound.
+    Sound sfxAk47Shoot;     ///< AK-47 shoot sound.
+    Sound sfxAk47Reload;    ///< AK-47 reload sound.
+    Sound sfxShotgunShoot;  ///< Shotgun shoot sound.
+    Sound sfxShotgunReload; ///< Shotgun reload sound.
 
-    Texture2D texBossWalk;
-    Texture2D texBossAttack;
-    Texture2D texBossIdle;
+    // -- Gameplay sounds --
+    Sound sfxBuy;        ///< Purchase sound.
+    Sound sfxCoinPickup; ///< Coin pickup sound.
+    Sound sfxPotionUse;  ///< Potion use sound.
+    Sound sfxPlayerStep; ///< Player footstep sound.
+    Sound sfxBossDrink;  ///< Boss drinking sound.
+    Sound sfxBomb;       ///< Bomb explosion sound.
+    Sound sfxBowShoot;   ///< Bow shoot sound.
 
-    Texture2D texSkyBox;
-    Texture2D texBottle;
-    Texture2D texBomb;
+    // -- Ambient / hurt sounds --
+    std::vector<Sound> sfxZombieSounds;     ///< Zombie ambient roar sounds.
+    std::vector<Sound> sfxBossSounds;       ///< Boss ambient roar sounds.
+    std::vector<Sound> sfxPlayerHurtSounds; ///< Player hurt sounds.
 
-    Sound sfxUIClick;
+    // -- Music --
+    Music bgmMenu;                    ///< Menu background music.
+    std::vector<Music> bgmGameTracks; ///< Game music tracks (played in sequence).
 
-    Sound sfxGlockShoot;
-    Sound sfxGlockReload;
-
-    Sound sfxMP5Shoot;
-    Sound sfxMP5Reload;
-
-    Sound sfxAk47Shoot;
-    Sound sfxAk47Reload;
-
-    Sound sfxShotgunShoot;
-    Sound sfxShotgunReload;
-
-    Sound sfxBuy;
-    Sound sfxCoinPickup;
-    Sound sfxPotionUse;
-    Sound sfxPlayerStep;
-    Sound sfxBossDrink;
-    Sound sfxBomb;
-
-    Sound sfxBowShoot;
-    std::vector<Sound> sfxZombieSounds;
-    std::vector<Sound> sfxBossSounds;
-    std::vector<Sound> sfxPlayerHurtSounds;
-
-    Music bgmMenu;
-    std::vector<Music> bgmGameTracks;
-
+    /// Loads all textures, sounds, and music from the assets directory.
     void LoadAll() {
         texPlayerIdle = LoadTexture("../assets/player_idle.png");
         texPlayerWalk = LoadTexture("../assets/player_walk.png");
@@ -130,12 +144,9 @@ class ResourceManager {
         sfxBossSounds.push_back(LoadSound("../assets/audio/boss_4.wav"));
         sfxBossSounds.push_back(LoadSound("../assets/audio/boss_5.wav"));
 
-        sfxPlayerHurtSounds.push_back(
-            LoadSound("../assets/audio/player_hurt1.wav"));
-        sfxPlayerHurtSounds.push_back(
-            LoadSound("../assets/audio/player_hurt2.wav"));
-        sfxPlayerHurtSounds.push_back(
-            LoadSound("../assets/audio/player_hurt3.wav"));
+        sfxPlayerHurtSounds.push_back(LoadSound("../assets/audio/player_hurt1.wav"));
+        sfxPlayerHurtSounds.push_back(LoadSound("../assets/audio/player_hurt2.wav"));
+        sfxPlayerHurtSounds.push_back(LoadSound("../assets/audio/player_hurt3.wav"));
 
         bgmMenu = LoadMusicStream("../assets/music/main_menu_music.mp3");
         bgmMenu.looping = true;
@@ -206,19 +217,19 @@ class ResourceManager {
         UnloadSound(sfxBomb);
 
         UnloadMusicStream(bgmMenu);
-        for (size_t i = 0; i < bgmGameTracks.size(); ++i) {
+        for(size_t i = 0; i < bgmGameTracks.size(); ++i) {
             UnloadMusicStream(bgmGameTracks[i]);
         }
 
-        for (size_t i = 0; i < sfxZombieSounds.size(); ++i) {
+        for(size_t i = 0; i < sfxZombieSounds.size(); ++i) {
             UnloadSound(sfxZombieSounds[i]);
         }
 
-        for (size_t i = 0; i < sfxBossSounds.size(); ++i) {
+        for(size_t i = 0; i < sfxBossSounds.size(); ++i) {
             UnloadSound(sfxBossSounds[i]);
         }
 
-        for (size_t i = 0; i < sfxPlayerHurtSounds.size(); ++i) {
+        for(size_t i = 0; i < sfxPlayerHurtSounds.size(); ++i) {
             UnloadSound(sfxPlayerHurtSounds[i]);
         }
     }
