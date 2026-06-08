@@ -200,6 +200,7 @@ void Player::InitializeArsenal() {
     glock->type = WeaponType::GLOCK;
     glock->width = 40;
     glock->height = 32;
+    glock->currentLevel = 1;
     glock->isUnlocked = true;
     glock->barrelOffest = {15, -8};
     glock->LoadStatsFromBalance(*gameBalance);
@@ -413,4 +414,6 @@ void Player::InitStats() {
     this->bombs = gameBalance->player.bombs;
     this->potions = gameBalance->player.potions;
     this->invincibilityDuration = gameBalance->player.invincibilityDuration;
+
+    currentWeaponIndex = 0;
 }
