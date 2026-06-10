@@ -20,8 +20,7 @@
       140,
       180,
       220,
-      260,
-      0
+      240
     ],
     "speedUpgradeCost": [
       150,
@@ -34,8 +33,7 @@
       220,
       245,
       270,
-      270,
-      0
+      280
     ],
     "visionUpgradeCost": [
       150,
@@ -314,18 +312,18 @@
       "dropReward": 12
     },
     "Boss": {
-      "health": 800,
+      "health": 950,
       "speed": 80,
-      "damage": 30,
+      "damage": 50,
       "attackCooldown": 3.2,
       "killReward": 200,
-      "dropReward": 100
+      "dropReward": 120
     }
   },
   "waves": {
     "currentWave": 1,
     "baseSpawnInterval": 4,
-    "waveMultiplier": 0.125,
+    "waveMultiplier": 0.15,
     "minSpawnInterval": 0.8
   },
   "bomb": {
