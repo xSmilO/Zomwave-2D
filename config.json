@@ -1,41 +1,41 @@
 {
   "player": {
-    "coins": 100000,
+    "coins": 0,
     "potions": 3,
     "bombs": 1,
-    "invincibilityDuration": 1.5,
-    "potionBaseCost": 50,
-    "potionFlatIncrease": 30,
-    "potionMultiplier": 1.1,
+    "invincibilityDuration": 2.0,
+    "potionBaseCost": 30,
+    "potionFlatIncrease": 15,
+    "potionMultiplier": 0.5,
     "healthUpgradeCost": [
-      150,
-      300,
-      500,
-      800,
-      1800,
+      100,
+      250,
+      450,
+      700,
+      1200,
       0
     ],
     "maxHealthLevels": [
-      100.0,
-      140.0,
-      160.0,
-      180.0,
-      200.0,
-      240.0
+      100,
+      140,
+      180,
+      220,
+      260,
+      0
     ],
     "speedUpgradeCost": [
-      200,
-      350,
-      550,
-      800,
+      150,
+      300,
+      500,
+      700,
       0
     ],
     "speedLevels": [
       220,
-      240.0,
-      250.0,
-      276.0,
-      300.0
+      245,
+      270,
+      270,
+      0
     ],
     "visionUpgradeCost": [
       150,
@@ -63,11 +63,11 @@
         0
       ],
       "damage": [
-        15.0,
-        18.0,
-        20.5,
-        22.0,
-        24.0
+        18,
+        20,
+        23,
+        26,
+        30
       ],
       "maxAmmo": [
         12,
@@ -84,11 +84,11 @@
         0.4
       ],
       "fireCooldown": [
-        0.45,
-        0.40,
-        0.30,
-        0.25,
-        0.22
+        0.4,
+        0.35,
+        0.3,
+        0.27,
+        0.24
       ],
       "pellets": [
         1,
@@ -99,7 +99,7 @@
       ]
     },
     "Mp5": {
-      "unlockCost": 500,
+      "unlockCost": 400,
       "upgradeCost": [
         150,
         300,
@@ -111,14 +111,14 @@
         0
       ],
       "damage": [
-        8.0,
-        9.5,
-        11.0,
-        13.0,
-        15.0,
-        17.0,
-        20.0,
-        24.0
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        22,
+        25
       ],
       "maxAmmo": [
         25,
@@ -162,7 +162,7 @@
       ]
     },
     "Ak-47": {
-      "unlockCost": 1500,
+      "unlockCost": 1200,
       "upgradeCost": [
         200,
         400,
@@ -176,16 +176,16 @@
         0
       ],
       "damage": [
-        8.0,
-        11.0,
-        14.0,
-        18.0,
-        22.0,
-        27.0,
-        32.0,
-        38.0,
-        45.0,
-        55.0
+        12,
+        15,
+        18,
+        22,
+        26,
+        30,
+        35,
+        40,
+        45,
+        50
       ],
       "maxAmmo": [
         31,
@@ -212,16 +212,16 @@
         0.5
       ],
       "fireCooldown": [
+        0.16,
         0.15,
         0.14,
         0.13,
         0.12,
         0.11,
-        0.10,
+        0.1,
         0.09,
         0.08,
-        0.07,
-        0.06
+        0.07
       ],
       "pellets": [
         1,
@@ -237,7 +237,7 @@
       ]
     },
     "Shotgun": {
-      "unlockCost": 800,
+      "unlockCost": 700,
       "upgradeCost": [
         250,
         450,
@@ -247,12 +247,12 @@
         0
       ],
       "damage": [
-        12.0,
-        14.0,
-        16.0,
-        18.0,
-        22.0,
-        25.0
+        12,
+        14,
+        16,
+        18,
+        20,
+        23
       ],
       "maxAmmo": [
         6,
@@ -287,50 +287,50 @@
         0.5
       ],
       "pellets": [
-        5,
-        5,
         6,
         6,
         7,
-        8
+        7,
+        8,
+        9
       ]
     }
   },
   "enemies": {
     "Zombie": {
-      "health": 100.0,
-      "speed": 120.0,
-      "damage": 10.0,
+      "health": 50,
+      "speed": 110,
+      "damage": 8,
       "attackCooldown": 1.5,
-      "killReward": 2,
-      "dropReward": 5
-    },
-    "Skeleton": {
-      "health": 130.0,
-      "speed": 80.0,
-      "damage": 12.0,
-      "attackCooldown": 2.0,
-      "killReward": 3,
+      "killReward": 6,
       "dropReward": 8
     },
+    "Skeleton": {
+      "health": 100,
+      "speed": 90,
+      "damage": 12,
+      "attackCooldown": 1.8,
+      "killReward": 10,
+      "dropReward": 12
+    },
     "Boss": {
-      "health": 500.0,
-      "speed": 60.0,
-      "damage": 48.0,
-      "attackCooldown": 3.0,
-      "killReward": 350,
-      "dropReward": 250
+      "health": 800,
+      "speed": 80,
+      "damage": 30,
+      "attackCooldown": 3.2,
+      "killReward": 200,
+      "dropReward": 100
     }
   },
   "waves": {
     "currentWave": 1,
-    "baseSpawnInterval": 2.5,
-    "waveMultiplier": 0.1,
-    "minSpawnInterval": 0.4
+    "baseSpawnInterval": 4,
+    "waveMultiplier": 0.125,
+    "minSpawnInterval": 0.8
   },
   "bomb": {
-    "cost": 200,
-    "damage": 100,
-    "radius": 200
+    "cost": 150,
+    "damage": 200,
+    "radius": 250
   }
 }

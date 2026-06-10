@@ -86,10 +86,6 @@ void Player::Update(float dt, Vector2 mousePosition, Map *map,
         }
     }
 
-    if (IsKeyPressed(KEY_B) && bombs > 0) {
-        bombs--;
-    }
-
     float moveX = inputDir.x * speed * dt;
     float moveY = inputDir.y * speed * dt;
     float hitX = position.x - (width / 2.0f);
