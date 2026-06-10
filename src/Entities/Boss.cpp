@@ -67,7 +67,7 @@ void Boss::Update(float dt, Vector2 playerPos, Map *map) {
             Vector2Add(arrowStart, Vector2Scale(baseDirection, 1000.0f));
 
         bulletManager->Shoot(arrowStart, arrowTarget, damage,
-                             BulletType::BOTTLE, 350.0f, 0, true);
+                             BulletType::BOTTLE, 420.0f, 0, true);
 
         attackTimer = attackCooldown;
         audioManager->PlayBossDrink(position, playerPos);
